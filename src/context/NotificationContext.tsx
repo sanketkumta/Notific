@@ -7,6 +7,7 @@ interface NotificationState {
   settings: NotificationSettings;
   flightInfo: FlightInfo;
   activeNotifications: Notification[];
+  currentApp: string | null;
 }
 
 type NotificationAction =
@@ -15,7 +16,8 @@ type NotificationAction =
   | { type: 'DISMISS_NOTIFICATION'; payload: string }
   | { type: 'UPDATE_SETTINGS'; payload: Partial<NotificationSettings> }
   | { type: 'CLEAR_ALL_NOTIFICATIONS' }
-  | { type: 'LOAD_SAMPLE_NOTIFICATIONS' };
+  | { type: 'LOAD_SAMPLE_NOTIFICATIONS' }
+  | { type: 'SET_CURRENT_APP'; payload: string | null };
 
 const initialState: NotificationState = {
   notifications: [],
@@ -37,6 +39,7 @@ const initialState: NotificationState = {
     flightPhase: 'cruise',
   },
   activeNotifications: [],
+  currentApp: null,
 };
 
 function notificationReducer(state: NotificationState, action: NotificationAction): NotificationState {
@@ -44,7 +47,7 @@ function notificationReducer(state: NotificationState, action: NotificationActio
     case 'ADD_NOTIFICATION':
       const newNotification = action.payload;
       const updatedNotifications = [newNotification, ...state.notifications];
-      const sortedNotifications = sortNotifications(updatedNotifications);
+      const sortedNotifications = sortNotifications(updatedNotifications, state.currentApp || undefined);
       const activeNotifications = sortedNotifications
         .filter(n => !n.isRead && n.isVisible)
         .slice(0, 6); // Show up to 6 active notifications
@@ -59,7 +62,7 @@ function notificationReducer(state: NotificationState, action: NotificationActio
       const updatedNotificationsRead = state.notifications.map(n =>
         n.id === action.payload ? { ...n, isRead: true } : n
       );
-      const sortedNotificationsRead = sortNotifications(updatedNotificationsRead);
+      const sortedNotificationsRead = sortNotifications(updatedNotificationsRead, state.currentApp || undefined);
       const activeNotificationsRead = sortedNotificationsRead
         .filter(n => !n.isRead && n.isVisible)
         .slice(0, 6);
@@ -74,7 +77,7 @@ function notificationReducer(state: NotificationState, action: NotificationActio
       const updatedNotificationsDismiss = state.notifications.map(n =>
         n.id === action.payload ? { ...n, isVisible: false } : n
       );
-      const sortedNotificationsDismiss = sortNotifications(updatedNotificationsDismiss);
+      const sortedNotificationsDismiss = sortNotifications(updatedNotificationsDismiss, state.currentApp || undefined);
       const activeNotificationsDismiss = sortedNotificationsDismiss
         .filter(n => !n.isRead && n.isVisible)
         .slice(0, 6);
@@ -99,13 +102,27 @@ function notificationReducer(state: NotificationState, action: NotificationActio
       };
 
     case 'LOAD_SAMPLE_NOTIFICATIONS':
-      const sortedSampleNotifications = sortNotifications(notificationData);
+      const sortedSampleNotifications = sortNotifications(notificationData, state.currentApp || undefined);
       return {
         ...state,
         notifications: sortedSampleNotifications,
         activeNotifications: sortedSampleNotifications
           .filter(n => !n.isRead && n.isVisible)
           .slice(0, 6), // Show up to 6 sample notifications
+      };
+
+    case 'SET_CURRENT_APP':
+      // Re-sort notifications when app context changes
+      const resortedNotifications = sortNotifications(state.notifications, action.payload || undefined);
+      const resortedActiveNotifications = resortedNotifications
+        .filter(n => !n.isRead && n.isVisible)
+        .slice(0, 6);
+
+      return {
+        ...state,
+        currentApp: action.payload,
+        notifications: resortedNotifications,
+        activeNotifications: resortedActiveNotifications,
       };
 
     default:

@@ -66,13 +66,72 @@ export const DEFAULT_WEIGHTS: NotificationWeights = {
   recency: 0.1
 };
 
-export function calculateWeightedScore(notification: Notification, weights: NotificationWeights = DEFAULT_WEIGHTS): number {
-  return (
-    weights.timePhaseBound * notification.timePhaseBound +
-    weights.relevance * notification.relevance +
-    weights.consequence * notification.consequence +
-    weights.recency * notification.recency
-  );
+// Category-specific grading formulas based on the images
+export function calculateWeightedScore(notification: Notification, currentAppContext?: string): number {
+  // Determine if this is a Cross-App or In-App notification based on current context
+  const isCurrentApp = currentAppContext &&
+    (notification.app.toLowerCase().includes(currentAppContext.toLowerCase()) ||
+     currentAppContext.toLowerCase().includes(notification.app.toLowerCase()));
+
+  switch (notification.category) {
+    case NotificationCategory.SAFETY:
+      // Global: Priority + Impact on passengers + Consequence to passenger of not having this info
+      return notification.priority + notification.relevance + notification.consequence;
+
+    case NotificationCategory.SYSTEM:
+      // User system: Priority + How relevant is to which app user is on + Consequence to passenger for not having this info
+      const appRelevance = isCurrentApp ? 10 : notification.relevance;
+      return notification.priority + appRelevance + notification.consequence;
+
+    case NotificationCategory.OPERATIONAL_INFO:
+      // Use system formula for operational notifications
+      const opAppRelevance = isCurrentApp ? 10 : notification.relevance;
+      return notification.priority + opAppRelevance + notification.consequence;
+
+    case NotificationCategory.CROSS_APP:
+      // Apply Cross-App formula when notification is from different app
+      if (currentAppContext && !isCurrentApp) {
+        const categoryImportance = getCategoryImportance(notification.category);
+        const cashValue = notification.priorityScore / 10;
+        return (0.40 * categoryImportance) + (0.25 * cashValue) + (0.20 * notification.relevance) + (0.15 * notification.recency);
+      }
+      // If it's actually from same app, treat as In-App
+      return notification.timePhaseBound + notification.relevance + notification.consequence + notification.recency;
+
+    case NotificationCategory.IN_APP:
+      // Apply In-App formula when notification is from same app
+      if (currentAppContext && isCurrentApp) {
+        return notification.timePhaseBound + notification.relevance + notification.consequence + notification.recency;
+      }
+      // If it's actually from different app, treat as Cross-App
+      const categoryImportance = getCategoryImportance(notification.category);
+      const cashValue = notification.priorityScore / 10;
+      return (0.40 * categoryImportance) + (0.25 * cashValue) + (0.20 * notification.relevance) + (0.15 * notification.recency);
+
+    default:
+      // Default formula for any other categories - determine context dynamically
+      if (currentAppContext && !isCurrentApp) {
+        // Cross-app scenario
+        const categoryImportance = getCategoryImportance(notification.category);
+        const cashValue = notification.priorityScore / 10;
+        return (0.40 * categoryImportance) + (0.25 * cashValue) + (0.20 * notification.relevance) + (0.15 * notification.recency);
+      } else {
+        // In-app scenario or no context
+        return notification.timePhaseBound + notification.relevance + notification.consequence + notification.recency;
+      }
+  }
+}
+
+function getCategoryImportance(category: NotificationCategory): number {
+  switch (category) {
+    case NotificationCategory.SAFETY: return 3;
+    case NotificationCategory.OPERATIONAL_INFO: return 2.5;
+    case NotificationCategory.SYSTEM: return 2;
+    case NotificationCategory.CROSS_APP: return 1.5;
+    case NotificationCategory.NON_SAFETY_PROMOTIONAL: return 1;
+    case NotificationCategory.IN_APP: return 1;
+    default: return 1;
+  }
 }
 
 // Define category priority order
@@ -85,7 +144,7 @@ const CATEGORY_PRIORITY: Record<NotificationCategory, number> = {
   [NotificationCategory.IN_APP]: 6
 };
 
-export function sortNotifications(notifications: Notification[]): Notification[] {
+export function sortNotifications(notifications: Notification[], currentAppContext?: string): Notification[] {
   return notifications.sort((a, b) => {
     // First, sort by category priority
     const categoryPriorityA = CATEGORY_PRIORITY[a.category];
@@ -96,8 +155,8 @@ export function sortNotifications(notifications: Notification[]): Notification[]
     }
 
     // Within the same category, sort by weighted score (higher score first)
-    const scoreA = calculateWeightedScore(a);
-    const scoreB = calculateWeightedScore(b);
+    const scoreA = calculateWeightedScore(a, currentAppContext);
+    const scoreB = calculateWeightedScore(b, currentAppContext);
     return scoreB - scoreA;
   });
 }

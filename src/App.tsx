@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import { NotificationProvider } from './context/NotificationContext';
+import { NotificationProvider, useNotification } from './context/NotificationContext';
 import { NotificationCenter } from './components/NotificationCenter';
 import { AnimatedNotifications } from './components/AnimatedNotifications';
 import { FlightInfo } from './components/FlightInfo';
@@ -8,6 +8,7 @@ import { EntertainmentDashboard } from './components/EntertainmentDashboard';
 import { NotificationTrigger } from './components/NotificationTrigger';
 import { QuickTriggers } from './components/QuickTriggers';
 import { NotificationStatus } from './components/NotificationStatus';
+import { AppOverlay } from './components/AppOverlay';
 
 const AppContainer = styled.div`
   min-height: 100vh;
@@ -61,44 +62,76 @@ const WelcomeText = styled.p`
   margin-bottom: 24px;
 `;
 
-function App() {
+function AppContent() {
   const [isNotificationCenterOpen, setIsNotificationCenterOpen] = useState(false);
+  const [currentApp, setCurrentApp] = useState<string | null>(null);
+  const { dispatch } = useNotification();
 
   const toggleNotificationCenter = () => {
     setIsNotificationCenterOpen(!isNotificationCenterOpen);
   };
 
+  const handleAppOpen = (appId: string) => {
+    setCurrentApp(appId);
+    dispatch({ type: 'SET_CURRENT_APP', payload: appId });
+  };
+
+  const handleAppClose = () => {
+    setCurrentApp(null);
+    dispatch({ type: 'SET_CURRENT_APP', payload: null });
+  };
+
+  return (
+    <AppContainer>
+      <Header>
+        <div>
+          <Title>SkyConnect Entertainment</Title>
+          <Subtitle>Inflight Entertainment & Services</Subtitle>
+        </div>
+        <QuickTriggers />
+      </Header>
+
+      <MainContent>
+        <WelcomeSection>
+          <WelcomeTitle>Welcome Aboard!</WelcomeTitle>
+          <WelcomeText>
+            Enjoy our comprehensive entertainment system and stay connected throughout your journey.
+          </WelcomeText>
+        </WelcomeSection>
+
+        <FlightInfo />
+        <EntertainmentDashboard onAppOpen={handleAppOpen} />
+      </MainContent>
+
+      {/* Only show notification system on main dashboard when no app is open */}
+      {!currentApp && (
+        <>
+          <NotificationStatus />
+          <AnimatedNotifications onOpenNotificationCenter={() => setIsNotificationCenterOpen(true)} />
+          <NotificationCenter
+            isOpen={isNotificationCenterOpen}
+            onToggle={toggleNotificationCenter}
+          />
+          <NotificationTrigger />
+        </>
+      )}
+
+      {/* App overlay with its own notification system */}
+      <AppOverlay
+        isOpen={!!currentApp}
+        appId={currentApp}
+        onClose={handleAppClose}
+        isNotificationCenterOpen={isNotificationCenterOpen}
+        onToggleNotificationCenter={toggleNotificationCenter}
+      />
+    </AppContainer>
+  );
+}
+
+function App() {
   return (
     <NotificationProvider>
-      <AppContainer>
-        <Header>
-          <div>
-            <Title>SkyConnect Entertainment</Title>
-            <Subtitle>Inflight Entertainment & Services</Subtitle>
-          </div>
-          <QuickTriggers />
-        </Header>
-
-        <MainContent>
-          <WelcomeSection>
-            <WelcomeTitle>Welcome Aboard!</WelcomeTitle>
-            <WelcomeText>
-              Enjoy our comprehensive entertainment system and stay connected throughout your journey.
-            </WelcomeText>
-          </WelcomeSection>
-
-          <FlightInfo />
-          <EntertainmentDashboard />
-        </MainContent>
-
-        <NotificationStatus />
-        <AnimatedNotifications onOpenNotificationCenter={() => setIsNotificationCenterOpen(true)} />
-        <NotificationCenter
-          isOpen={isNotificationCenterOpen}
-          onToggle={toggleNotificationCenter}
-        />
-        <NotificationTrigger />
-      </AppContainer>
+      <AppContent />
     </NotificationProvider>
   );
 }

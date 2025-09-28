@@ -2,6 +2,7 @@ import React from 'react';
 import styled from 'styled-components';
 import { AlertTriangle, Info, Settings, Zap, ShoppingBag, X, Check } from 'lucide-react';
 import { Notification, NotificationCategory, PriorityLevel, calculateWeightedScore } from '../types/notification';
+import { useNotification } from '../context/NotificationContext';
 
 interface NotificationCardProps {
   notification: Notification;
@@ -162,7 +163,8 @@ function getPriorityLabel(priority: PriorityLevel): string {
 
 export function NotificationCard({ notification, onMarkAsRead, onDismiss }: NotificationCardProps) {
   const timeAgo = Math.floor((Date.now() - notification.timestamp.getTime()) / 60000);
-  const weightedScore = calculateWeightedScore(notification);
+  const { state } = useNotification();
+  const weightedScore = calculateWeightedScore(notification, state.currentApp || undefined);
 
   return (
     <Card priority={notification.priority} category={notification.category}>

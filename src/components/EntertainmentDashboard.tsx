@@ -353,47 +353,20 @@ const getAppContent = (appId: string) => {
   }
 };
 
-export function EntertainmentDashboard() {
-  const [selectedApp, setSelectedApp] = useState<string | null>(null);
+interface EntertainmentDashboardProps {
+  onAppOpen: (appId: string) => void;
+}
 
-  const handleAppClick = (appId: string) => {
-    setSelectedApp(appId);
-  };
-
-  const closeModal = () => {
-    setSelectedApp(null);
-  };
-
-  const currentApp = apps.find(app => app.id === selectedApp);
-
+export function EntertainmentDashboard({ onAppOpen }: EntertainmentDashboardProps) {
   return (
-    <>
-      <Container>
-        {apps.map((app, index) => (
-          <AppTile key={index} onClick={() => handleAppClick(app.id)}>
-            <AppIcon>{app.icon}</AppIcon>
-            <AppName>{app.name}</AppName>
-            <AppDescription>{app.description}</AppDescription>
-          </AppTile>
-        ))}
-      </Container>
-
-      <Modal isOpen={!!selectedApp}>
-        <ModalContent>
-          <CloseButton onClick={closeModal}>
-            <X size={20} />
-          </CloseButton>
-          {currentApp && (
-            <>
-              <AppTitle>
-                {currentApp.icon}
-                {currentApp.name}
-              </AppTitle>
-              {getAppContent(selectedApp!)}
-            </>
-          )}
-        </ModalContent>
-      </Modal>
-    </>
+    <Container>
+      {apps.map((app, index) => (
+        <AppTile key={index} onClick={() => onAppOpen(app.id)}>
+          <AppIcon>{app.icon}</AppIcon>
+          <AppName>{app.name}</AppName>
+          <AppDescription>{app.description}</AppDescription>
+        </AppTile>
+      ))}
+    </Container>
   );
 }
