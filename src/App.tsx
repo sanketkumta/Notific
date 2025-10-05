@@ -9,6 +9,7 @@ import { NotificationTrigger } from './components/NotificationTrigger';
 import { QuickTriggers } from './components/QuickTriggers';
 import { NotificationStatus } from './components/NotificationStatus';
 import { AppOverlay } from './components/AppOverlay';
+import { ScoringSystemManager } from './components/ScoringSystemManager';
 
 const AppContainer = styled.div`
   min-height: 100vh;
@@ -81,6 +82,15 @@ function AppContent() {
     dispatch({ type: 'SET_CURRENT_APP', payload: null });
   };
 
+  const handleScoringUpdate = (formulaType: string, newFormula: any) => {
+    dispatch({
+      type: 'UPDATE_SCORING_CONFIG',
+      payload: {
+        [formulaType]: newFormula
+      }
+    });
+  };
+
   return (
     <AppContainer>
       <Header>
@@ -124,6 +134,9 @@ function AppContent() {
         isNotificationCenterOpen={isNotificationCenterOpen}
         onToggleNotificationCenter={toggleNotificationCenter}
       />
+
+      {/* Scoring System Manager - Always visible */}
+      <ScoringSystemManager onFormulaUpdate={handleScoringUpdate} />
     </AppContainer>
   );
 }

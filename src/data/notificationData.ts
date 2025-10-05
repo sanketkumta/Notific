@@ -225,4 +225,367 @@ export const notificationData: Notification[] = [
     isRead: false,
     isVisible: true,
   },
+  // Duty Free App specific notifications
+  {
+    id: '15',
+    app: 'Duty Free',
+    category: NotificationCategory.IN_APP,
+    priority: PriorityLevel.LOW,
+    priorityScore: 20,
+    timePhaseBound: 7,
+    relevance: 8,
+    consequence: 4,
+    recency: 9,
+    trigger: 'Product view detected',
+    message: 'Limited Edition Chanel No.5 - Only 3 remaining at this special price!',
+    timestamp: new Date(Date.now() - 300000),
+    isRead: false,
+    isVisible: true,
+  },
+  {
+    id: '16',
+    app: 'Duty Free',
+    category: NotificationCategory.IN_APP,
+    priority: PriorityLevel.VERY_LOW,
+    priorityScore: 22,
+    timePhaseBound: 6,
+    relevance: 7,
+    consequence: 3,
+    recency: 8,
+    trigger: 'Cart abandonment timer',
+    message: 'Items in your cart will expire in 10 minutes - Complete purchase now!',
+    timestamp: new Date(Date.now() - 600000),
+    isRead: false,
+    isVisible: true,
+  },
+  {
+    id: '17',
+    app: 'Duty Free',
+    category: NotificationCategory.IN_APP,
+    priority: PriorityLevel.MINIMAL,
+    priorityScore: 25,
+    timePhaseBound: 8,
+    relevance: 9,
+    consequence: 5,
+    recency: 7,
+    trigger: 'Personal recommendation',
+    message: 'Based on your browsing: Swiss chocolate gift set 25% off - Perfect souvenir!',
+    timestamp: new Date(Date.now() - 900000),
+    isRead: false,
+    isVisible: true,
+  },
+  // Food & Drinks App specific notifications
+  {
+    id: '18',
+    app: 'Food & Drinks',
+    category: NotificationCategory.IN_APP,
+    priority: PriorityLevel.MEDIUM,
+    priorityScore: 28,
+    timePhaseBound: 8,
+    relevance: 9,
+    consequence: 6,
+    recency: 8,
+    trigger: 'Meal service window',
+    message: 'Lunch service starting in 15 minutes - Pre-order your meal now for faster service',
+    timestamp: new Date(Date.now() - 180000),
+    isRead: false,
+    isVisible: true,
+  },
+  {
+    id: '19',
+    app: 'Food & Drinks',
+    category: NotificationCategory.IN_APP,
+    priority: PriorityLevel.LOW,
+    priorityScore: 24,
+    timePhaseBound: 6,
+    relevance: 8,
+    consequence: 4,
+    recency: 9,
+    trigger: 'Special dietary option',
+    message: 'Vegan option available: Mediterranean quinoa bowl - Limited quantity remaining',
+    timestamp: new Date(Date.now() - 420000),
+    isRead: false,
+    isVisible: true,
+  },
+  {
+    id: '20',
+    app: 'Food & Drinks',
+    category: NotificationCategory.IN_APP,
+    priority: PriorityLevel.VERY_LOW,
+    priorityScore: 21,
+    timePhaseBound: 5,
+    relevance: 7,
+    consequence: 3,
+    recency: 8,
+    trigger: 'Happy hour promotion',
+    message: 'Happy Hour: Premium cocktails 2-for-1 until 4 PM - Cheers at altitude!',
+    timestamp: new Date(Date.now() - 720000),
+    isRead: false,
+    isVisible: true,
+  },
+  // Movies App specific notifications
+  {
+    id: '21',
+    app: 'Movies & TV',
+    category: NotificationCategory.IN_APP,
+    priority: PriorityLevel.MINIMAL,
+    priorityScore: 18,
+    timePhaseBound: 4,
+    relevance: 6,
+    consequence: 2,
+    recency: 7,
+    trigger: 'Viewing history analysis',
+    message: 'Since you enjoyed Inception, try our new sci-fi collection - Mind-bending stories await!',
+    timestamp: new Date(Date.now() - 1200000),
+    isRead: false,
+    isVisible: true,
+  },
+  {
+    id: '22',
+    app: 'Movies & TV',
+    category: NotificationCategory.IN_APP,
+    priority: PriorityLevel.MINIMAL,
+    priorityScore: 16,
+    timePhaseBound: 3,
+    relevance: 5,
+    consequence: 2,
+    recency: 6,
+    trigger: 'Continue watching reminder',
+    message: 'Continue watching "The Crown" - You left off at 23:45 in Episode 4',
+    timestamp: new Date(Date.now() - 1800000),
+    isRead: false,
+    isVisible: true,
+  },
+  // Music App specific notifications
+  {
+    id: '23',
+    app: 'Music',
+    category: NotificationCategory.IN_APP,
+    priority: PriorityLevel.MINIMAL,
+    priorityScore: 17,
+    timePhaseBound: 3,
+    relevance: 6,
+    consequence: 2,
+    recency: 6,
+    trigger: 'Playlist completion',
+    message: 'Your "Relaxing Flight" playlist is ending - Try our "Smooth Jazz" collection next',
+    timestamp: new Date(Date.now() - 2100000),
+    isRead: false,
+    isVisible: true,
+  },
+  // Cross-app notifications triggered by other apps
+  {
+    id: '24',
+    app: 'Ride Share',
+    category: NotificationCategory.CROSS_APP,
+    priority: PriorityLevel.MEDIUM,
+    priorityScore: 30,
+    timePhaseBound: 8,
+    relevance: 8,
+    consequence: 7,
+    recency: 9,
+    trigger: 'Flight landing approach',
+    message: 'Landing in 20 minutes - Your Uber ride is confirmed and waiting at Terminal 2',
+    timestamp: new Date(Date.now() - 120000),
+    isRead: false,
+    isVisible: true,
+  },
+  {
+    id: '25',
+    app: 'Hotel Booking',
+    category: NotificationCategory.CROSS_APP,
+    priority: PriorityLevel.LOW,
+    priorityScore: 26,
+    timePhaseBound: 6,
+    relevance: 7,
+    consequence: 5,
+    recency: 8,
+    trigger: 'Destination arrival proximity',
+    message: 'Hotel Marriott check-in available now - Skip the line with mobile check-in',
+    timestamp: new Date(Date.now() - 480000),
+    isRead: false,
+    isVisible: true,
+  }
 ];
+
+// App-specific notification generators
+export const generateAppNotification = (appId: string): Notification => {
+  const timestamp = new Date();
+  const baseId = Date.now().toString();
+
+  switch (appId) {
+    case 'duty-free':
+      const dutyFreeNotifications = [
+        {
+          trigger: 'Product interest detected',
+          message: 'That perfume you\'re viewing is 40% off - Best deal of the flight!',
+          relevance: 9,
+          consequence: 4
+        },
+        {
+          trigger: 'Limited time offer',
+          message: 'Flash Sale: Premium electronics 25% off for the next 15 minutes only!',
+          relevance: 8,
+          consequence: 5
+        },
+        {
+          trigger: 'Cart reminder',
+          message: 'Complete your purchase before landing - Free delivery to your seat!',
+          relevance: 7,
+          consequence: 6
+        }
+      ];
+      const dutyFreeNotif = dutyFreeNotifications[Math.floor(Math.random() * dutyFreeNotifications.length)];
+      return {
+        id: baseId,
+        app: 'Duty Free',
+        category: NotificationCategory.IN_APP,
+        priority: PriorityLevel.LOW,
+        priorityScore: 22,
+        timePhaseBound: 7,
+        relevance: dutyFreeNotif.relevance,
+        consequence: dutyFreeNotif.consequence,
+        recency: 10,
+        trigger: dutyFreeNotif.trigger,
+        message: dutyFreeNotif.message,
+        timestamp,
+        isRead: false,
+        isVisible: true,
+      };
+
+    case 'food':
+      const foodNotifications = [
+        {
+          trigger: 'Meal service timing',
+          message: 'Dinner service in 10 minutes - Pre-select your meal for priority service',
+          relevance: 9,
+          consequence: 6
+        },
+        {
+          trigger: 'Special offer detection',
+          message: 'Upgrade to premium meal for $12 - Includes wine pairing and dessert',
+          relevance: 7,
+          consequence: 4
+        },
+        {
+          trigger: 'Dietary preference match',
+          message: 'Gluten-free pasta available - Order now while supplies last',
+          relevance: 8,
+          consequence: 5
+        }
+      ];
+      const foodNotif = foodNotifications[Math.floor(Math.random() * foodNotifications.length)];
+      return {
+        id: baseId,
+        app: 'Food & Drinks',
+        category: NotificationCategory.IN_APP,
+        priority: PriorityLevel.LOW,
+        priorityScore: 24,
+        timePhaseBound: 6,
+        relevance: foodNotif.relevance,
+        consequence: foodNotif.consequence,
+        recency: 10,
+        trigger: foodNotif.trigger,
+        message: foodNotif.message,
+        timestamp,
+        isRead: false,
+        isVisible: true,
+      };
+
+    case 'movies':
+      const movieNotifications = [
+        {
+          trigger: 'Viewing preference analysis',
+          message: 'New release: "Dune: Part Three" now available - Perfect for your flight duration',
+          relevance: 7,
+          consequence: 3
+        },
+        {
+          trigger: 'Watch time optimization',
+          message: 'Short films collection: 30-45 min movies perfect for remaining flight time',
+          relevance: 8,
+          consequence: 2
+        },
+        {
+          trigger: 'Resume watching prompt',
+          message: 'Resume "Stranger Things" S4E3 at 18:32 - Auto-resume in 2 minutes',
+          relevance: 6,
+          consequence: 2
+        }
+      ];
+      const movieNotif = movieNotifications[Math.floor(Math.random() * movieNotifications.length)];
+      return {
+        id: baseId,
+        app: 'Movies & TV',
+        category: NotificationCategory.IN_APP,
+        priority: PriorityLevel.MINIMAL,
+        priorityScore: 18,
+        timePhaseBound: 4,
+        relevance: movieNotif.relevance,
+        consequence: movieNotif.consequence,
+        recency: 10,
+        trigger: movieNotif.trigger,
+        message: movieNotif.message,
+        timestamp,
+        isRead: false,
+        isVisible: true,
+      };
+
+    case 'music':
+      const musicNotifications = [
+        {
+          trigger: 'Playlist ending',
+          message: 'Your playlist is ending - Try "Relaxing Piano" for the rest of your flight',
+          relevance: 6,
+          consequence: 2
+        },
+        {
+          trigger: 'Mood detection',
+          message: 'Feeling stressed? Try our "Calm Skies" meditation playlist',
+          relevance: 7,
+          consequence: 3
+        },
+        {
+          trigger: 'Discovery suggestion',
+          message: 'New artist alert: This indie folk matches your taste - Give it a listen!',
+          relevance: 5,
+          consequence: 2
+        }
+      ];
+      const musicNotif = musicNotifications[Math.floor(Math.random() * musicNotifications.length)];
+      return {
+        id: baseId,
+        app: 'Music',
+        category: NotificationCategory.IN_APP,
+        priority: PriorityLevel.MINIMAL,
+        priorityScore: 16,
+        timePhaseBound: 3,
+        relevance: musicNotif.relevance,
+        consequence: musicNotif.consequence,
+        recency: 10,
+        trigger: musicNotif.trigger,
+        message: musicNotif.message,
+        timestamp,
+        isRead: false,
+        isVisible: true,
+      };
+
+    default:
+      return {
+        id: baseId,
+        app: 'Entertainment System',
+        category: NotificationCategory.IN_APP,
+        priority: PriorityLevel.MINIMAL,
+        priorityScore: 15,
+        timePhaseBound: 3,
+        relevance: 5,
+        consequence: 2,
+        recency: 10,
+        trigger: 'App usage detected',
+        message: `Welcome to ${appId}! Enjoy your inflight experience.`,
+        timestamp,
+        isRead: false,
+        isVisible: true,
+      };
+  }
+};

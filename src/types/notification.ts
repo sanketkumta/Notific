@@ -42,6 +42,41 @@ export interface NotificationSettings {
   systemNotifications: boolean;
 }
 
+export interface ScoringWeights {
+  categoryImportance?: number;
+  cashValue?: number;
+  relevance?: number;
+  recency?: number;
+  priority?: number;
+  appRelevance?: number;
+  consequence?: number;
+  timePhaseBound?: number;
+  impact?: number;
+}
+
+export interface FormulaConfig {
+  name: string;
+  description: string;
+  formula: string;
+  weights: ScoringWeights;
+  maxScore: number;
+  normalizedMax: number;
+  parameters: string[];
+  enabled: boolean;
+}
+
+export interface ScoringSystemConfig {
+  crossApp: FormulaConfig;
+  userSystem: FormulaConfig;
+  safetyOperational: FormulaConfig;
+  withinApp: FormulaConfig;
+  globalSettings: {
+    enabled: boolean;
+    debugMode: boolean;
+    showCalculations: boolean;
+  };
+}
+
 export interface FlightInfo {
   flightNumber: string;
   origin: string;
@@ -66,62 +101,124 @@ export const DEFAULT_WEIGHTS: NotificationWeights = {
   recency: 0.1
 };
 
-// Category-specific grading formulas based on the images
+// Category-specific grading formulas normalized to 0-10 scale based on the provided screenshots
 export function calculateWeightedScore(notification: Notification, currentAppContext?: string): number {
   // Determine if this is a Cross-App or In-App notification based on current context
   const isCurrentApp = currentAppContext &&
     (notification.app.toLowerCase().includes(currentAppContext.toLowerCase()) ||
      currentAppContext.toLowerCase().includes(notification.app.toLowerCase()));
 
+  // Determine if this should be treated as cross-app or within-app
+  const isCrossApp = currentAppContext && !isCurrentApp;
+  const isWithinApp = currentAppContext && isCurrentApp;
+
+  let rawScore = 0;
+  let maxPossibleScore = 10;
+
   switch (notification.category) {
     case NotificationCategory.SAFETY:
-      // Global: Priority + Impact on passengers + Consequence to passenger of not having this info
-      return notification.priority + notification.relevance + notification.consequence;
-
-    case NotificationCategory.SYSTEM:
-      // User system: Priority + How relevant is to which app user is on + Consequence to passenger for not having this info
-      const appRelevance = isCurrentApp ? 10 : notification.relevance;
-      return notification.priority + appRelevance + notification.consequence;
+      // Safety and operational formula: Priority + Impact on passengers + Consequence to passenger of not having this info
+      // Using relevance as "Impact on passengers" as per screenshot
+      // Max: 1 + 10 + 10 = 21, Min: 10 + 1 + 1 = 12 (since priority 1-10, but 1 is highest)
+      rawScore = notification.priority + notification.relevance + notification.consequence;
+      maxPossibleScore = 21;
+      break;
 
     case NotificationCategory.OPERATIONAL_INFO:
-      // Use system formula for operational notifications
-      const opAppRelevance = isCurrentApp ? 10 : notification.relevance;
-      return notification.priority + opAppRelevance + notification.consequence;
+      // Safety and operational formula: Priority + Impact on passengers + Consequence to passenger of not having this info
+      // Using relevance as "Impact on passengers" as per screenshot
+      rawScore = notification.priority + notification.relevance + notification.consequence;
+      maxPossibleScore = 21;
+      break;
+
+    case NotificationCategory.SYSTEM:
+      // User system formula: Priority + How relevant is to which app user is on + Consequence to passenger for not having this info
+      const appRelevance = isWithinApp ? 10 : notification.relevance;
+      rawScore = notification.priority + appRelevance + notification.consequence;
+      maxPossibleScore = 21; // 1 + 10 + 10
+      break;
 
     case NotificationCategory.CROSS_APP:
-      // Apply Cross-App formula when notification is from different app
-      if (currentAppContext && !isCurrentApp) {
+      if (isCrossApp) {
+        // Cross app notifications formula: 0.40 × Category Importance + 0.25 × Cash Value + 0.20 × Relevance + 0.15 × Recency
         const categoryImportance = getCategoryImportance(notification.category);
-        const cashValue = notification.priorityScore / 10;
-        return (0.40 * categoryImportance) + (0.25 * cashValue) + (0.20 * notification.relevance) + (0.15 * notification.recency);
+        const cashValue = notification.priorityScore / 10; // Cash value in ((current$/max$)*10)
+        rawScore = (0.40 * categoryImportance) + (0.25 * cashValue) + (0.20 * notification.relevance) + (0.15 * notification.recency);
+        maxPossibleScore = (0.40 * 3) + (0.25 * 4) + (0.20 * 10) + (0.15 * 10); // 5.7
+      } else {
+        // If within same app, use within app formula
+        rawScore = notification.timePhaseBound + notification.relevance + notification.consequence + notification.recency;
+        maxPossibleScore = 40; // 10 + 10 + 10 + 10
       }
-      // If it's actually from same app, treat as In-App
-      return notification.timePhaseBound + notification.relevance + notification.consequence + notification.recency;
+      break;
 
     case NotificationCategory.IN_APP:
-      // Apply In-App formula when notification is from same app
-      if (currentAppContext && isCurrentApp) {
-        return notification.timePhaseBound + notification.relevance + notification.consequence + notification.recency;
+      if (isWithinApp) {
+        // Within app notifications formula: Time or Phase-bound + How relevant is to what user is doing in the app + Consequence + How recent
+        rawScore = notification.timePhaseBound + notification.relevance + notification.consequence + notification.recency;
+        maxPossibleScore = 40; // 10 + 10 + 10 + 10
+      } else {
+        // If from different app, use cross-app formula
+        const categoryImportance = getCategoryImportance(notification.category);
+        const cashValue = notification.priorityScore / 10;
+        rawScore = (0.40 * categoryImportance) + (0.25 * cashValue) + (0.20 * notification.relevance) + (0.15 * notification.recency);
+        maxPossibleScore = (0.40 * 3) + (0.25 * 4) + (0.20 * 10) + (0.15 * 10); // 5.7
       }
-      // If it's actually from different app, treat as Cross-App
-      const categoryImportance = getCategoryImportance(notification.category);
-      const cashValue = notification.priorityScore / 10;
-      return (0.40 * categoryImportance) + (0.25 * cashValue) + (0.20 * notification.relevance) + (0.15 * notification.recency);
+      break;
+
+    case NotificationCategory.NON_SAFETY_PROMOTIONAL:
+      // Promotional notifications - determine context dynamically
+      if (isCrossApp) {
+        // Cross app formula
+        const categoryImportance = getCategoryImportance(notification.category);
+        const cashValue = notification.priorityScore / 10;
+        rawScore = (0.40 * categoryImportance) + (0.25 * cashValue) + (0.20 * notification.relevance) + (0.15 * notification.recency);
+        maxPossibleScore = (0.40 * 3) + (0.25 * 4) + (0.20 * 10) + (0.15 * 10); // 5.7
+      } else {
+        // Within app or no context - use within app formula
+        rawScore = notification.timePhaseBound + notification.relevance + notification.consequence + notification.recency;
+        maxPossibleScore = 40;
+      }
+      break;
 
     default:
-      // Default formula for any other categories - determine context dynamically
-      if (currentAppContext && !isCurrentApp) {
+      // Default formula based on context
+      if (isCrossApp) {
         // Cross-app scenario
         const categoryImportance = getCategoryImportance(notification.category);
         const cashValue = notification.priorityScore / 10;
-        return (0.40 * categoryImportance) + (0.25 * cashValue) + (0.20 * notification.relevance) + (0.15 * notification.recency);
+        rawScore = (0.40 * categoryImportance) + (0.25 * cashValue) + (0.20 * notification.relevance) + (0.15 * notification.recency);
+        maxPossibleScore = (0.40 * 3) + (0.25 * 4) + (0.20 * 10) + (0.15 * 10); // 5.7
       } else {
-        // In-app scenario or no context
-        return notification.timePhaseBound + notification.relevance + notification.consequence + notification.recency;
+        // Within-app scenario or no context
+        rawScore = notification.timePhaseBound + notification.relevance + notification.consequence + notification.recency;
+        maxPossibleScore = 40;
       }
+      break;
   }
+
+  // Normalize to 0-10 scale
+  // For priority-based scores (Safety, Operational, System), invert since lower priority number = higher importance
+  if (notification.category === NotificationCategory.SAFETY ||
+      notification.category === NotificationCategory.OPERATIONAL_INFO ||
+      (notification.category === NotificationCategory.SYSTEM && !isCrossApp)) {
+    // Invert priority component: convert 1-10 priority to 10-1 scoring
+    const invertedPriority = 11 - notification.priority;
+    const appRelevance = isWithinApp && notification.category === NotificationCategory.SYSTEM ? 10 : notification.relevance;
+    const adjustedScore = invertedPriority + notification.relevance + notification.consequence;
+    if (notification.category === NotificationCategory.SYSTEM) {
+      // System uses app relevance instead of just relevance
+      const systemScore = invertedPriority + appRelevance + notification.consequence;
+      return Math.min(10, Math.max(0, (systemScore / 30) * 10)); // Max: 10 + 10 + 10 = 30
+    }
+    return Math.min(10, Math.max(0, (adjustedScore / 30) * 10)); // Max: 10 + 10 + 10 = 30
+  }
+
+  // For other formulas, normalize directly
+  return Math.min(10, Math.max(0, (rawScore / maxPossibleScore) * 10));
 }
 
+// Category importance values for cross-app formula (1 to 3 scale as per screenshot)
 function getCategoryImportance(category: NotificationCategory): number {
   switch (category) {
     case NotificationCategory.SAFETY: return 3;

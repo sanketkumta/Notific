@@ -12,10 +12,13 @@ import {
   MapPin,
   Volume2,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Play,
+  Gamepad2
 } from 'lucide-react';
 import { useNotification } from '../context/NotificationContext';
 import { Notification, NotificationCategory, PriorityLevel } from '../types/notification';
+import { generateAppNotification } from '../data/notificationData';
 
 const Container = styled.div<{ isExpanded: boolean }>`
   position: fixed;
@@ -622,6 +625,83 @@ export function NotificationTrigger() {
                 <TriggerDescription>{scenario.description}</TriggerDescription>
               </TriggerButton>
             ))}
+          </TriggerGrid>
+        </Section>
+
+        <Section>
+          <SectionTitle>📱 App-Specific (In-App)</SectionTitle>
+          <TriggerGrid>
+            <TriggerButton
+              priority={PriorityLevel.LOW}
+              onClick={() => {
+                const notification = generateAppNotification('duty-free');
+                dispatch({ type: 'ADD_NOTIFICATION', payload: notification });
+              }}
+            >
+              <TriggerIcon><ShoppingBag size={16} /></TriggerIcon>
+              <TriggerName>Duty Free</TriggerName>
+              <TriggerDescription>Shop notifications</TriggerDescription>
+            </TriggerButton>
+
+            <TriggerButton
+              priority={PriorityLevel.MEDIUM}
+              onClick={() => {
+                const notification = generateAppNotification('food');
+                dispatch({ type: 'ADD_NOTIFICATION', payload: notification });
+              }}
+            >
+              <TriggerIcon><Coffee size={16} /></TriggerIcon>
+              <TriggerName>Food & Drinks</TriggerName>
+              <TriggerDescription>Meal notifications</TriggerDescription>
+            </TriggerButton>
+
+            <TriggerButton
+              priority={PriorityLevel.MINIMAL}
+              onClick={() => {
+                const notification = generateAppNotification('movies');
+                dispatch({ type: 'ADD_NOTIFICATION', payload: notification });
+              }}
+            >
+              <TriggerIcon><Play size={16} /></TriggerIcon>
+              <TriggerName>Movies & TV</TriggerName>
+              <TriggerDescription>Entertainment alerts</TriggerDescription>
+            </TriggerButton>
+
+            <TriggerButton
+              priority={PriorityLevel.MINIMAL}
+              onClick={() => {
+                const notification = generateAppNotification('music');
+                dispatch({ type: 'ADD_NOTIFICATION', payload: notification });
+              }}
+            >
+              <TriggerIcon><Volume2 size={16} /></TriggerIcon>
+              <TriggerName>Music</TriggerName>
+              <TriggerDescription>Playlist suggestions</TriggerDescription>
+            </TriggerButton>
+
+            <TriggerButton
+              priority={PriorityLevel.MINIMAL}
+              onClick={() => {
+                const notification = generateAppNotification('games');
+                dispatch({ type: 'ADD_NOTIFICATION', payload: notification });
+              }}
+            >
+              <TriggerIcon><Gamepad2 size={16} /></TriggerIcon>
+              <TriggerName>Games</TriggerName>
+              <TriggerDescription>Game recommendations</TriggerDescription>
+            </TriggerButton>
+
+            <TriggerButton
+              priority={PriorityLevel.LOW}
+              onClick={() => {
+                const notification = generateAppNotification('internet');
+                dispatch({ type: 'ADD_NOTIFICATION', payload: notification });
+              }}
+            >
+              <TriggerIcon><Wifi size={16} /></TriggerIcon>
+              <TriggerName>WiFi</TriggerName>
+              <TriggerDescription>Connection status</TriggerDescription>
+            </TriggerButton>
           </TriggerGrid>
         </Section>
 
