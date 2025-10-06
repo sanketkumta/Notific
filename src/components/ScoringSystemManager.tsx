@@ -314,7 +314,7 @@ const defaultFormulas = {
     description: 'For notifications from different apps than currently active',
     formula: '(0.40 × CategoryImportance) + (0.25 × CashValue) + (0.20 × Relevance) + (0.15 × Recency)',
     weights: { categoryImportance: 0.40, cashValue: 0.25, relevance: 0.20, recency: 0.15 },
-    maxScore: 5.7,
+    maxScore: 7.2,
     normalizedMax: 10,
     parameters: ['Category Importance (1-3)', 'Cash Value (priorityScore/10)', 'Relevance (1-10)', 'Recency (1-10)']
   },
@@ -381,28 +381,28 @@ export function ScoringSystemManager({ onFormulaUpdate }: ScoringSystemManagerPr
     switch (formulaKey) {
       case 'crossApp':
         // (0.40 × CategoryImportance) + (0.25 × CashValue) + (0.20 × Relevance) + (0.15 × Recency)
-        return ((weights.categoryImportance * testValues.categoryImportance) +
-                (weights.cashValue * testValues.cashValue) +
-                (weights.relevance * testValues.relevance) +
-                (weights.recency * testValues.recency)) / formula.maxScore * 10;
+        return (weights.categoryImportance * testValues.categoryImportance) +
+               (weights.cashValue * testValues.cashValue) +
+               (weights.relevance * testValues.relevance) +
+               (weights.recency * testValues.recency);
       case 'userSystem':
         // (0.33 × InvertedPriority) + (0.33 × AppRelevance) + (0.33 × Consequence)
         const invertedPriority = 11 - testValues.priority;
-        return ((weights.priority * invertedPriority) +
-                (weights.appRelevance * testValues.relevance) +
-                (weights.consequence * testValues.consequence)) / formula.maxScore * 10;
+        return (weights.priority * invertedPriority) +
+               (weights.appRelevance * testValues.relevance) +
+               (weights.consequence * testValues.consequence);
       case 'safetyOperational':
         // (0.33 × InvertedPriority) + (0.33 × Impact) + (0.33 × Consequence)
         const invertedPrioritySafety = 11 - testValues.priority;
-        return ((weights.priority * invertedPrioritySafety) +
-                (weights.impact * testValues.impact) +
-                (weights.consequence * testValues.consequence)) / formula.maxScore * 10;
+        return (weights.priority * invertedPrioritySafety) +
+               (weights.impact * testValues.impact) +
+               (weights.consequence * testValues.consequence);
       case 'withinApp':
         // (0.25 × TimePhaseBound) + (0.25 × Relevance) + (0.25 × Consequence) + (0.25 × Recency)
-        return ((weights.timePhaseBound * testValues.timePhaseBound) +
-                (weights.relevance * testValues.relevance) +
-                (weights.consequence * testValues.consequence) +
-                (weights.recency * testValues.recency)) / formula.maxScore * 10;
+        return (weights.timePhaseBound * testValues.timePhaseBound) +
+               (weights.relevance * testValues.relevance) +
+               (weights.consequence * testValues.consequence) +
+               (weights.recency * testValues.recency);
       default:
         return 0;
     }
