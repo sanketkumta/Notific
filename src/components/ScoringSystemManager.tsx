@@ -341,7 +341,7 @@ const defaultFormulas = {
     description: 'Notifications from the currently active app',
     formula: '(0.25 × TimePhaseBound) + (0.25 × Relevance) + (0.25 × Consequence) + (0.25 × Recency)',
     weights: { timePhaseBound: 0.25, relevance: 0.25, consequence: 0.25, recency: 0.25 },
-    maxScore: 40,
+    maxScore: 10,
     normalizedMax: 10,
     parameters: ['Time/Phase-bound (1-10)', 'Relevance to app activity (1-10)', 'Consequence (1-10)', 'Recency (1-10)']
   }
@@ -380,16 +380,29 @@ export function ScoringSystemManager({ onFormulaUpdate }: ScoringSystemManagerPr
 
     switch (formulaKey) {
       case 'crossApp':
+        // (0.40 × CategoryImportance) + (0.25 × CashValue) + (0.20 × Relevance) + (0.15 × Recency)
         return ((weights.categoryImportance * testValues.categoryImportance) +
                 (weights.cashValue * testValues.cashValue) +
                 (weights.relevance * testValues.relevance) +
                 (weights.recency * testValues.recency)) / formula.maxScore * 10;
       case 'userSystem':
+        // (0.33 × InvertedPriority) + (0.33 × AppRelevance) + (0.33 × Consequence)
+        const invertedPriority = 11 - testValues.priority;
+        return ((weights.priority * invertedPriority) +
+                (weights.appRelevance * testValues.relevance) +
+                (weights.consequence * testValues.consequence)) / formula.maxScore * 10;
       case 'safetyOperational':
-        const inverted = 11 - testValues.priority;
-        return (inverted + testValues.relevance + testValues.consequence) / formula.maxScore * 10;
+        // (0.33 × InvertedPriority) + (0.33 × Impact) + (0.33 × Consequence)
+        const invertedPrioritySafety = 11 - testValues.priority;
+        return ((weights.priority * invertedPrioritySafety) +
+                (weights.impact * testValues.impact) +
+                (weights.consequence * testValues.consequence)) / formula.maxScore * 10;
       case 'withinApp':
-        return (testValues.timePhaseBound + testValues.relevance + testValues.consequence + testValues.recency) / formula.maxScore * 10;
+        // (0.25 × TimePhaseBound) + (0.25 × Relevance) + (0.25 × Consequence) + (0.25 × Recency)
+        return ((weights.timePhaseBound * testValues.timePhaseBound) +
+                (weights.relevance * testValues.relevance) +
+                (weights.consequence * testValues.consequence) +
+                (weights.recency * testValues.recency)) / formula.maxScore * 10;
       default:
         return 0;
     }
@@ -555,36 +568,162 @@ export function ScoringSystemManager({ onFormulaUpdate }: ScoringSystemManagerPr
             <TestSection>
               <TestTitle>Test Calculator</TestTitle>
               <TestGrid>
-                <div>
-                  <ParameterLabel>Priority (1-10)</ParameterLabel>
-                  <TestInput
-                    type="number"
-                    min="1"
-                    max="10"
-                    value={testValues.priority}
-                    onChange={(e) => setTestValues(prev => ({ ...prev, priority: parseInt(e.target.value) }))}
-                  />
-                </div>
-                <div>
-                  <ParameterLabel>Relevance (1-10)</ParameterLabel>
-                  <TestInput
-                    type="number"
-                    min="1"
-                    max="10"
-                    value={testValues.relevance}
-                    onChange={(e) => setTestValues(prev => ({ ...prev, relevance: parseInt(e.target.value) }))}
-                  />
-                </div>
-                <div>
-                  <ParameterLabel>Consequence (1-10)</ParameterLabel>
-                  <TestInput
-                    type="number"
-                    min="1"
-                    max="10"
-                    value={testValues.consequence}
-                    onChange={(e) => setTestValues(prev => ({ ...prev, consequence: parseInt(e.target.value) }))}
-                  />
-                </div>
+                {key === 'crossApp' && (
+                  <>
+                    <div>
+                      <ParameterLabel>Category Importance (1-3)</ParameterLabel>
+                      <TestInput
+                        type="number"
+                        min="1"
+                        max="3"
+                        value={testValues.categoryImportance}
+                        onChange={(e) => setTestValues(prev => ({ ...prev, categoryImportance: parseInt(e.target.value) }))}
+                      />
+                    </div>
+                    <div>
+                      <ParameterLabel>Cash Value (0-10)</ParameterLabel>
+                      <TestInput
+                        type="number"
+                        min="0"
+                        max="10"
+                        value={testValues.cashValue}
+                        onChange={(e) => setTestValues(prev => ({ ...prev, cashValue: parseInt(e.target.value) }))}
+                      />
+                    </div>
+                    <div>
+                      <ParameterLabel>Relevance (1-10)</ParameterLabel>
+                      <TestInput
+                        type="number"
+                        min="1"
+                        max="10"
+                        value={testValues.relevance}
+                        onChange={(e) => setTestValues(prev => ({ ...prev, relevance: parseInt(e.target.value) }))}
+                      />
+                    </div>
+                    <div>
+                      <ParameterLabel>Recency (1-10)</ParameterLabel>
+                      <TestInput
+                        type="number"
+                        min="1"
+                        max="10"
+                        value={testValues.recency}
+                        onChange={(e) => setTestValues(prev => ({ ...prev, recency: parseInt(e.target.value) }))}
+                      />
+                    </div>
+                  </>
+                )}
+                {key === 'userSystem' && (
+                  <>
+                    <div>
+                      <ParameterLabel>Priority (1-10, inverted)</ParameterLabel>
+                      <TestInput
+                        type="number"
+                        min="1"
+                        max="10"
+                        value={testValues.priority}
+                        onChange={(e) => setTestValues(prev => ({ ...prev, priority: parseInt(e.target.value) }))}
+                      />
+                    </div>
+                    <div>
+                      <ParameterLabel>App Relevance (1-10)</ParameterLabel>
+                      <TestInput
+                        type="number"
+                        min="1"
+                        max="10"
+                        value={testValues.relevance}
+                        onChange={(e) => setTestValues(prev => ({ ...prev, relevance: parseInt(e.target.value) }))}
+                      />
+                    </div>
+                    <div>
+                      <ParameterLabel>Consequence (1-10)</ParameterLabel>
+                      <TestInput
+                        type="number"
+                        min="1"
+                        max="10"
+                        value={testValues.consequence}
+                        onChange={(e) => setTestValues(prev => ({ ...prev, consequence: parseInt(e.target.value) }))}
+                      />
+                    </div>
+                  </>
+                )}
+                {key === 'safetyOperational' && (
+                  <>
+                    <div>
+                      <ParameterLabel>Priority (1-10, inverted)</ParameterLabel>
+                      <TestInput
+                        type="number"
+                        min="1"
+                        max="10"
+                        value={testValues.priority}
+                        onChange={(e) => setTestValues(prev => ({ ...prev, priority: parseInt(e.target.value) }))}
+                      />
+                    </div>
+                    <div>
+                      <ParameterLabel>Impact (1-10)</ParameterLabel>
+                      <TestInput
+                        type="number"
+                        min="1"
+                        max="10"
+                        value={testValues.impact}
+                        onChange={(e) => setTestValues(prev => ({ ...prev, impact: parseInt(e.target.value) }))}
+                      />
+                    </div>
+                    <div>
+                      <ParameterLabel>Consequence (1-10)</ParameterLabel>
+                      <TestInput
+                        type="number"
+                        min="1"
+                        max="10"
+                        value={testValues.consequence}
+                        onChange={(e) => setTestValues(prev => ({ ...prev, consequence: parseInt(e.target.value) }))}
+                      />
+                    </div>
+                  </>
+                )}
+                {key === 'withinApp' && (
+                  <>
+                    <div>
+                      <ParameterLabel>Time/Phase-bound (1-10)</ParameterLabel>
+                      <TestInput
+                        type="number"
+                        min="1"
+                        max="10"
+                        value={testValues.timePhaseBound}
+                        onChange={(e) => setTestValues(prev => ({ ...prev, timePhaseBound: parseInt(e.target.value) }))}
+                      />
+                    </div>
+                    <div>
+                      <ParameterLabel>Relevance (1-10)</ParameterLabel>
+                      <TestInput
+                        type="number"
+                        min="1"
+                        max="10"
+                        value={testValues.relevance}
+                        onChange={(e) => setTestValues(prev => ({ ...prev, relevance: parseInt(e.target.value) }))}
+                      />
+                    </div>
+                    <div>
+                      <ParameterLabel>Consequence (1-10)</ParameterLabel>
+                      <TestInput
+                        type="number"
+                        min="1"
+                        max="10"
+                        value={testValues.consequence}
+                        onChange={(e) => setTestValues(prev => ({ ...prev, consequence: parseInt(e.target.value) }))}
+                      />
+                    </div>
+                    <div>
+                      <ParameterLabel>Recency (1-10)</ParameterLabel>
+                      <TestInput
+                        type="number"
+                        min="1"
+                        max="10"
+                        value={testValues.recency}
+                        onChange={(e) => setTestValues(prev => ({ ...prev, recency: parseInt(e.target.value) }))}
+                      />
+                    </div>
+                  </>
+                )}
                 <div>
                   <ParameterLabel>Score Result</ParameterLabel>
                   <TestResult>{calculateTestScore(key).toFixed(2)}</TestResult>
