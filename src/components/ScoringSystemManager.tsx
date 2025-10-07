@@ -323,7 +323,7 @@ const defaultFormulas = {
     description: 'System notifications with app context awareness',
     formula: '(0.33 × InvertedPriority) + (0.33 × AppRelevance) + (0.33 × Consequence)',
     weights: { priority: 0.33, appRelevance: 0.33, consequence: 0.33 },
-    maxScore: 30,
+    maxScore: 9.9,
     normalizedMax: 10,
     parameters: ['Priority (1-10, inverted)', 'App Relevance (boosted if same app)', 'Consequence (1-10)']
   },
@@ -363,49 +363,70 @@ export function ScoringSystemManager({ onFormulaUpdate }: ScoringSystemManagerPr
 
   // Test values for formula calculation
   const [testValues, setTestValues] = useState({
-    priority: 1,
-    relevance: 8,
-    consequence: 7,
+    priority: 1,  // Changed to 1 to get inverted priority of 10
+    relevance: 10,
+    consequence: 10,
     recency: 9,
     timePhaseBound: 6,
     categoryImportance: 2,
     cashValue: 3,
-    impact: 8
+    impact: 10  // Changed to 10 to get maximum impact
   });
 
   // Calculate test score for a given formula
   const calculateTestScore = (formulaKey: string) => {
     const formula = formulas[formulaKey as keyof typeof formulas];
     const weights = formula.weights as any;
+    let rawScore = 0;
 
     switch (formulaKey) {
       case 'crossApp':
         // (0.40 × CategoryImportance) + (0.25 × CashValue) + (0.20 × Relevance) + (0.15 × Recency)
-        return (weights.categoryImportance * testValues.categoryImportance) +
-               (weights.cashValue * testValues.cashValue) +
-               (weights.relevance * testValues.relevance) +
-               (weights.recency * testValues.recency);
+        rawScore = (weights.categoryImportance * testValues.categoryImportance) +
+                   (weights.cashValue * testValues.cashValue) +
+                   (weights.relevance * testValues.relevance) +
+                   (weights.recency * testValues.recency);
+        break;
       case 'userSystem':
         // (0.33 × InvertedPriority) + (0.33 × AppRelevance) + (0.33 × Consequence)
         const invertedPriority = 11 - testValues.priority;
-        return (weights.priority * invertedPriority) +
-               (weights.appRelevance * testValues.relevance) +
-               (weights.consequence * testValues.consequence);
+        rawScore = (weights.priority * invertedPriority) +
+                   (weights.appRelevance * testValues.relevance) +
+                   (weights.consequence * testValues.consequence);
+        // For userSystem, use the weighted formula as intended
+        // (0.33 × InvertedPriority) + (0.33 × AppRelevance) + (0.33 × Consequence)
+        const weightedScore = (weights.priority * invertedPriority) +
+                             (weights.appRelevance * testValues.relevance) +
+                             (weights.consequence * testValues.consequence);
+        // Normalize to 0-10 scale based on maximum possible weighted score
+        const maxWeightedScore = (weights.priority * 10) + (weights.appRelevance * 10) + (weights.consequence * 10);
+        return Math.min(10, Math.max(0, (weightedScore / maxWeightedScore) * 10));
       case 'safetyOperational':
         // (0.33 × InvertedPriority) + (0.33 × Impact) + (0.33 × Consequence)
         const invertedPrioritySafety = 11 - testValues.priority;
-        return (weights.priority * invertedPrioritySafety) +
-               (weights.impact * testValues.impact) +
-               (weights.consequence * testValues.consequence);
+        rawScore = (weights.priority * invertedPrioritySafety) +
+                   (weights.impact * testValues.impact) +
+                   (weights.consequence * testValues.consequence);
+        // For safetyOperational, use the weighted formula as intended
+        const weightedScoreSafety = (weights.priority * invertedPrioritySafety) +
+                                   (weights.impact * testValues.impact) +
+                                   (weights.consequence * testValues.consequence);
+        // Normalize to 0-10 scale based on maximum possible weighted score
+        const maxWeightedScoreSafety = (weights.priority * 10) + (weights.impact * 10) + (weights.consequence * 10);
+        return Math.min(10, Math.max(0, (weightedScoreSafety / maxWeightedScoreSafety) * 10));
       case 'withinApp':
         // (0.25 × TimePhaseBound) + (0.25 × Relevance) + (0.25 × Consequence) + (0.25 × Recency)
-        return (weights.timePhaseBound * testValues.timePhaseBound) +
-               (weights.relevance * testValues.relevance) +
-               (weights.consequence * testValues.consequence) +
-               (weights.recency * testValues.recency);
+        rawScore = (weights.timePhaseBound * testValues.timePhaseBound) +
+                   (weights.relevance * testValues.relevance) +
+                   (weights.consequence * testValues.consequence) +
+                   (weights.recency * testValues.recency);
+        break;
       default:
         return 0;
     }
+
+    // Normalize to 0-10 scale
+    return Math.min(10, Math.max(0, (rawScore / formula.maxScore) * formula.normalizedMax));
   };
 
   const handleWeightChange = (formulaKey: string, weightKey: string, value: number) => {
