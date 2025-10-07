@@ -7,10 +7,7 @@ import { NotificationCenter } from './NotificationCenter';
 import { NotificationStatus } from './NotificationStatus';
 
 // Import app pages
-import { FlightSafetySystem } from '../pages/FlightSafetySystem';
-import { FlightManagement } from '../pages/FlightManagement';
 import { EntertainmentHub } from '../pages/EntertainmentHub';
-import { WiFiManagement } from '../pages/WiFiManagement';
 import { DutyFreeShop } from '../pages/DutyFreeShop';
 import { CabinService } from '../pages/CabinService';
 
@@ -119,15 +116,8 @@ interface AppOverlayProps {
 const getAppInfo = (appId: string) => {
   const appMap: Record<string, { title: string; subtitle: string }> = {
     'movies': { title: 'Movies & TV', subtitle: 'Stream 500+ titles' },
-    'music': { title: 'Music', subtitle: 'Unlimited streaming' },
-    'games': { title: 'Games', subtitle: 'Arcade & puzzles' },
     'duty-free': { title: 'Duty Free Shop', subtitle: 'Shop & save' },
     'food': { title: 'Food & Drinks', subtitle: 'Order to seat' },
-    'internet': { title: 'Internet', subtitle: 'High-speed WiFi' },
-    'map': { title: 'Flight Map', subtitle: 'Live tracking' },
-    'photos': { title: 'Photo Gallery', subtitle: 'Destination pics' },
-    'audiobooks': { title: 'Audio Books', subtitle: 'Best sellers' },
-    'lounge': { title: 'Lounge Services', subtitle: 'VIP experience' },
   };
   return appMap[appId] || { title: 'App', subtitle: 'Loading...' };
 };
@@ -136,24 +126,10 @@ const renderAppContent = (appId: string) => {
   switch (appId) {
     case 'duty-free':
       return <DutyFreeShop />;
-    case 'internet':
-      return <WiFiManagement />;
     case 'food':
       return <CabinService />;
     case 'movies':
       return <EntertainmentHub />;
-    case 'music':
-      return <EntertainmentHub />;
-    case 'games':
-      return <EntertainmentHub />;
-    case 'map':
-      return <FlightManagement />;
-    case 'photos':
-      return <EntertainmentHub />;
-    case 'audiobooks':
-      return <EntertainmentHub />;
-    case 'lounge':
-      return <CabinService />;
     default:
       return (
         <div style={{

@@ -1,6 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
-import { Play, Music, Film, Tv, Gamepad2, Star } from 'lucide-react';
+import { Play, Music, Film, Tv, Gamepad2 } from 'lucide-react';
 
 const Container = styled.div`
   min-height: 100vh;

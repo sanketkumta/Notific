@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
 import { AlertTriangle, X, ChevronRight, Bell } from 'lucide-react';
 import { useNotification } from '../context/NotificationContext';
-import { PriorityLevel, Notification } from '../types/notification';
+import { PriorityLevel } from '../types/notification';
 
 const Container = styled.div`
   position: fixed;

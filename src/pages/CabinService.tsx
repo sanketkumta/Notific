@@ -1,6 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
-import { Coffee, UtensilsCrossed, Bell, Clock, User, Star } from 'lucide-react';
+import { Coffee, UtensilsCrossed, Bell, Star } from 'lucide-react';
 
 const Container = styled.div`
   min-height: 100vh;

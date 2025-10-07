@@ -4,15 +4,8 @@ import { useNotification } from '../context/NotificationContext';
 import { generateAppNotification } from '../data/notificationData';
 import {
   Play,
-  Music,
-  Gamepad2,
   ShoppingBag,
   Utensils,
-  Wifi,
-  Map,
-  Camera,
-  Headphones,
-  Coffee,
 } from 'lucide-react';
 
 const Container = styled.div`
@@ -79,58 +72,16 @@ const apps = [
     id: 'movies'
   },
   {
-    icon: <Music size={32} />,
-    name: 'Music',
-    description: 'Unlimited streaming',
-    id: 'music'
-  },
-  {
-    icon: <Gamepad2 size={32} />,
-    name: 'Games',
-    description: 'Arcade & puzzles',
-    id: 'games'
-  },
-  {
-    icon: <ShoppingBag size={32} />,
-    name: 'Duty Free',
-    description: 'Shop & save',
-    id: 'duty-free'
-  },
-  {
     icon: <Utensils size={32} />,
     name: 'Food & Drinks',
     description: 'Order to seat',
     id: 'food'
   },
   {
-    icon: <Wifi size={32} />,
-    name: 'Internet',
-    description: 'High-speed WiFi',
-    id: 'internet'
-  },
-  {
-    icon: <Map size={32} />,
-    name: 'Flight Map',
-    description: 'Live tracking',
-    id: 'map'
-  },
-  {
-    icon: <Camera size={32} />,
-    name: 'Photo Gallery',
-    description: 'Destination pics',
-    id: 'photos'
-  },
-  {
-    icon: <Headphones size={32} />,
-    name: 'Audio Books',
-    description: 'Best sellers',
-    id: 'audiobooks'
-  },
-  {
-    icon: <Coffee size={32} />,
-    name: 'Lounge Services',
-    description: 'VIP experience',
-    id: 'lounge'
+    icon: <ShoppingBag size={32} />,
+    name: 'Duty Free',
+    description: 'Shop & save',
+    id: 'duty-free'
   }
 ];
 
