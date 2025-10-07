@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import styled from 'styled-components';
 import {
   Settings,
@@ -11,10 +11,11 @@ import {
   Info,
   AlertTriangle,
   Eye,
-  EyeOff
+  EyeOff,
+  Move
 } from 'lucide-react';
 
-const Container = styled.div<{ isExpanded: boolean }>`
+const Container = styled.div<{ isExpanded: boolean; isDragging: boolean }>`
   position: fixed;
   top: 20px;
   right: 20px;
@@ -26,18 +27,27 @@ const Container = styled.div<{ isExpanded: boolean }>`
   width: ${props => props.isExpanded ? '600px' : '280px'};
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-  transition: all 0.3s ease;
+  transition: ${props => props.isDragging ? 'none' : 'all 0.3s ease'};
   max-height: ${props => props.isExpanded ? '90vh' : '70px'};
   overflow: hidden;
   z-index: 1000;
+  cursor: ${props => props.isDragging ? 'grabbing' : 'default'};
+  user-select: none;
 `;
 
-const Header = styled.div`
+const Header = styled.div<{ isDragging: boolean }>`
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 16px;
-  cursor: pointer;
+  cursor: ${props => props.isDragging ? 'grabbing' : 'grab'};
+  padding: 4px;
+  border-radius: 8px;
+  transition: background 0.2s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.05);
+  }
 `;
 
 const Title = styled.h3`
@@ -47,6 +57,16 @@ const Title = styled.h3`
   display: flex;
   align-items: center;
   gap: 8px;
+  flex: 1;
+`;
+
+const DragHandle = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 12px;
+  margin-right: 8px;
 `;
 
 const ExpandButton = styled.button`
@@ -361,6 +381,56 @@ export function ScoringSystemManager({ onFormulaUpdate }: ScoringSystemManagerPr
     showCalculations: false
   });
 
+  // Drag functionality
+  const [isDragging, setIsDragging] = useState(false);
+  const [position, setPosition] = useState({ x: 20, y: 20 });
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Drag event handlers
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget || (e.target as HTMLElement).closest('[data-drag-handle]')) {
+      setIsDragging(true);
+      setDragStart({
+        x: e.clientX - position.x,
+        y: e.clientY - position.y
+      });
+      e.preventDefault();
+    }
+  };
+
+  const handleMouseMove = (e: MouseEvent) => {
+    if (isDragging) {
+      const newX = e.clientX - dragStart.x;
+      const newY = e.clientY - dragStart.y;
+      
+      // Keep within viewport bounds
+      const maxX = window.innerWidth - (containerRef.current?.offsetWidth || 280);
+      const maxY = window.innerHeight - (containerRef.current?.offsetHeight || 70);
+      
+      setPosition({
+        x: Math.max(0, Math.min(newX, maxX)),
+        y: Math.max(0, Math.min(newY, maxY))
+      });
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  // Add event listeners for drag
+  useEffect(() => {
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isDragging, dragStart]);
+
   // Test values for formula calculation
   const [testValues, setTestValues] = useState({
     priority: 1,  // Changed to 1 to get inverted priority of 10
@@ -458,13 +528,29 @@ export function ScoringSystemManager({ onFormulaUpdate }: ScoringSystemManagerPr
   };
 
   return (
-    <Container isExpanded={isExpanded}>
-      <Header onClick={() => setIsExpanded(!isExpanded)}>
-        <Title>
+    <Container 
+      ref={containerRef}
+      isExpanded={isExpanded} 
+      isDragging={isDragging}
+      style={{
+        left: `${position.x}px`,
+        top: `${position.y}px`,
+        right: 'auto'
+      }}
+    >
+      <Header 
+        isDragging={isDragging}
+        onMouseDown={handleMouseDown}
+        data-drag-handle
+      >
+        <DragHandle>
+          <Move size={14} />
+        </DragHandle>
+        <Title onClick={() => setIsExpanded(!isExpanded)}>
           <Calculator size={16} />
           Scoring System Manager
         </Title>
-        <ExpandButton>
+        <ExpandButton onClick={() => setIsExpanded(!isExpanded)}>
           {isExpanded ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
         </ExpandButton>
       </Header>

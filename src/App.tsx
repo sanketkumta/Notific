@@ -3,7 +3,6 @@ import styled from 'styled-components';
 import { NotificationProvider, useNotification } from './context/NotificationContext';
 import { NotificationCenter } from './components/NotificationCenter';
 import { AnimatedNotifications } from './components/AnimatedNotifications';
-import { FlightInfo } from './components/FlightInfo';
 import { EntertainmentDashboard } from './components/EntertainmentDashboard';
 import { NotificationTrigger } from './components/NotificationTrigger';
 import { QuickTriggers } from './components/QuickTriggers';
@@ -109,7 +108,6 @@ function AppContent() {
           </WelcomeText>
         </WelcomeSection>
 
-        <FlightInfo />
         <EntertainmentDashboard onAppOpen={handleAppOpen} />
       </MainContent>
 
