@@ -133,11 +133,12 @@ function AppContent() {
         onToggleNotificationCenter={toggleNotificationCenter}
       />
 
-      {/* Scoring System Manager - Always visible */}
-      <ScoringSystemManager onFormulaUpdate={handleScoringUpdate} />
-    </AppContainer>
-  );
-}
+             {/* Scoring System Manager - Always visible */}
+             <ScoringSystemManager onFormulaUpdate={handleScoringUpdate} />
+
+           </AppContainer>
+         );
+       }
 
 function App() {
   return (
