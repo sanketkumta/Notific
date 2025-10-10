@@ -14,7 +14,7 @@ const Container = styled.div<{ isOpen: boolean }>`
   background: linear-gradient(180deg, #1e3c72 0%, #2a5298 100%);
   box-shadow: -4px 0 20px rgba(0, 0, 0, 0.3);
   transition: right 0.3s ease-in-out;
-  z-index: 1000;
+  z-index: 2000;
   display: flex;
   flex-direction: column;
 `;
