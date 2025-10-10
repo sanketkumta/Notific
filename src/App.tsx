@@ -5,7 +5,6 @@ import { NotificationCenter } from './components/NotificationCenter';
 import { AnimatedNotifications } from './components/AnimatedNotifications';
 import { EntertainmentDashboard } from './components/EntertainmentDashboard';
 import { NotificationTrigger } from './components/NotificationTrigger';
-import { QuickTriggers } from './components/QuickTriggers';
 import { NotificationStatus } from './components/NotificationStatus';
 import { AppOverlay } from './components/AppOverlay';
 import { ScoringSystemManager } from './components/ScoringSystemManager';
@@ -97,7 +96,6 @@ function AppContent() {
           <Title>SkyConnect Entertainment</Title>
           <Subtitle>Inflight Entertainment & Services</Subtitle>
         </div>
-        <QuickTriggers />
       </Header>
 
       <MainContent>
