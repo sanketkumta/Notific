@@ -24,14 +24,13 @@ const Container = styled.div<{ isExpanded: boolean }>`
   position: fixed;
   top: 20px;
   left: 20px;
-  background: rgba(0, 0, 0, 0.9);
-  backdrop-filter: blur(15px);
+  background: #f5f5f5;
   border-radius: 16px;
   padding: 20px;
-  color: white;
+  color: #333333;
   width: ${props => props.isExpanded ? '450px' : '280px'};
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  border: 1px solid #e0e0e0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
   max-height: ${props => props.isExpanded ? '85vh' : '70px'};
   overflow: hidden;
@@ -58,15 +57,10 @@ const Title = styled.h3`
 const ExpandButton = styled.button`
   background: none;
   border: none;
-  color: white;
+  color: #666666;
   cursor: pointer;
   padding: 4px;
   border-radius: 4px;
-  transition: background 0.2s;
-
-  &:hover {
-    background: rgba(255, 255, 255, 0.1);
-  }
 `;
 
 const Content = styled.div`
@@ -79,17 +73,13 @@ const Content = styled.div`
   }
 
   &::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.1);
+    background: #e0e0e0;
     border-radius: 3px;
   }
 
   &::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.3);
+    background: #cccccc;
     border-radius: 3px;
-  }
-
-  &::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.5);
   }
 `;
 
@@ -100,7 +90,7 @@ const Section = styled.div`
 const SectionTitle = styled.h4`
   margin: 0 0 12px 0;
   font-size: 14px;
-  color: #64B5F6;
+  color: #666666;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -116,39 +106,29 @@ const TriggerButton = styled.button<{ priority: PriorityLevel }>`
   background: ${props => {
     switch (props.priority) {
       case PriorityLevel.CRITICAL:
-        return 'linear-gradient(135deg, #ff4757 0%, #ff3742 100%)';
+        return '#999999';
       case PriorityLevel.HIGH:
-        return 'linear-gradient(135deg, #ff6b35 0%, #f7931e 100%)';
+        return '#b3b3b3';
       case PriorityLevel.MEDIUM:
-        return 'linear-gradient(135deg, #4834d4 0%, #686de0 100%)';
+        return '#cccccc';
       default:
-        return 'linear-gradient(135deg, #30336b 0%, #535c68 100%)';
+        return '#e0e0e0';
     }
   }};
-  border: none;
-  color: white;
+  border: 1px solid #cccccc;
+  color: #333333;
   padding: 14px;
   border-radius: 10px;
   cursor: pointer;
   font-size: 11px;
   font-weight: 500;
   text-align: center;
-  transition: all 0.2s;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 6px;
   min-height: 90px;
   justify-content: center;
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  }
-
-  &:active {
-    transform: translateY(0);
-  }
 `;
 
 const TriggerIcon = styled.div`
@@ -163,16 +143,17 @@ const TriggerName = styled.div`
 
 const TriggerDescription = styled.div`
   font-size: 9px;
-  opacity: 0.8;
+  color: #666666;
   line-height: 1.1;
   text-align: center;
 `;
 
 const CustomTriggerSection = styled.div`
-  background: rgba(255, 255, 255, 0.05);
+  background: #eeeeee;
   border-radius: 8px;
   padding: 16px;
   margin-top: 16px;
+  border: 1px solid #e0e0e0;
 `;
 
 const InputGroup = styled.div`
@@ -183,64 +164,58 @@ const Label = styled.label`
   display: block;
   font-size: 12px;
   margin-bottom: 4px;
-  opacity: 0.8;
+  color: #666666;
 `;
 
 const Input = styled.input`
   width: 100%;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: #ffffff;
+  border: 1px solid #cccccc;
   border-radius: 4px;
   padding: 8px;
-  color: white;
+  color: #333333;
   font-size: 12px;
 
   &::placeholder {
-    color: rgba(255, 255, 255, 0.5);
+    color: #999999;
   }
 
   &:focus {
     outline: none;
-    border-color: #64B5F6;
+    border-color: #999999;
   }
 `;
 
 const Select = styled.select`
   width: 100%;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: #ffffff;
+  border: 1px solid #cccccc;
   border-radius: 4px;
   padding: 8px;
-  color: white;
+  color: #333333;
   font-size: 12px;
 
   &:focus {
     outline: none;
-    border-color: #64B5F6;
+    border-color: #999999;
   }
 
   option {
-    background: #333;
-    color: white;
+    background: #ffffff;
+    color: #333333;
   }
 `;
 
 const CreateButton = styled.button`
-  background: linear-gradient(135deg, #2ed573 0%, #1dd1a1 100%);
-  border: none;
-  color: white;
+  background: #cccccc;
+  border: 1px solid #b3b3b3;
+  color: #333333;
   padding: 10px 16px;
   border-radius: 6px;
   cursor: pointer;
   font-size: 12px;
   font-weight: 600;
   width: 100%;
-  transition: all 0.2s;
-
-  &:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  }
 `;
 
 interface TriggerScenario {
