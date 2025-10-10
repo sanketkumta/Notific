@@ -27,23 +27,24 @@ const NotificationToast = styled.div<{
   background: ${props => {
     switch (props.priority) {
       case PriorityLevel.CRITICAL:
-        return 'linear-gradient(135deg, #ff4757 0%, #ff3742 100%)';
+        return '#999999';
       case PriorityLevel.HIGH:
-        return 'linear-gradient(135deg, #ff6b35 0%, #f7931e 100%)';
+        return '#b3b3b3';
       default:
-        return 'linear-gradient(135deg, #4834d4 0%, #686de0 100%)';
+        return '#cccccc';
     }
   }};
-  color: white;
+  color: #333333;
   border-radius: 12px;
   padding: 12px 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   display: flex;
   align-items: center;
   justify-content: space-between;
   pointer-events: all;
   width: 100%;
   position: relative;
+  border: 1px solid #e0e0e0;
 
   ${props => props.isRemoving ? `
     animation: slideOutRight 0.4s ease-in-out forwards;
@@ -78,38 +79,6 @@ const NotificationToast = styled.div<{
       }
     }
   `}
-
-  ${props => props.priority === PriorityLevel.CRITICAL && `
-    &::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      border-radius: 12px;
-      box-shadow: 0 0 20px rgba(255, 71, 87, 0.6);
-      animation: criticalPulse 2s ease-in-out infinite;
-      pointer-events: none;
-      z-index: -1;
-    }
-
-    @keyframes criticalPulse {
-      0%, 100% {
-        box-shadow: 0 0 20px rgba(255, 71, 87, 0.3);
-      }
-      50% {
-        box-shadow: 0 0 30px rgba(255, 71, 87, 0.8);
-      }
-    }
-  `}
-
-  transition: all 0.3s ease;
-
-  &:hover {
-    transform: translateX(-5px);
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
-  }
 `;
 
 const Content = styled.div`
@@ -119,7 +88,7 @@ const Content = styled.div`
 
 const AppName = styled.div`
   font-size: 12px;
-  opacity: 0.9;
+  color: #666666;
   margin-bottom: 4px;
   font-weight: 600;
 `;
@@ -127,28 +96,22 @@ const AppName = styled.div`
 const Message = styled.div`
   font-size: 14px;
   line-height: 1.3;
+  color: #333333;
 `;
 
 const CloseButton = styled.button`
   background: none;
   border: none;
-  color: white;
+  color: #666666;
   cursor: pointer;
   padding: 4px;
   border-radius: 4px;
-  opacity: 0.8;
-  transition: all 0.2s;
-
-  &:hover {
-    opacity: 1;
-    background: rgba(255, 255, 255, 0.1);
-  }
 `;
 
 const SeeMoreButton = styled.button`
-  background: linear-gradient(135deg, #4834d4 0%, #686de0 100%);
-  border: none;
-  color: white;
+  background: #e0e0e0;
+  border: 1px solid #cccccc;
+  color: #333333;
   padding: 12px 20px;
   border-radius: 12px;
   cursor: pointer;
@@ -160,19 +123,7 @@ const SeeMoreButton = styled.button`
   gap: 8px;
   width: 100%;
   margin-top: 8px;
-  transition: all 0.3s ease;
   pointer-events: all;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
-    background: linear-gradient(135deg, #5a4fcf 0%, #7b6feb 100%);
-  }
-
-  &:active {
-    transform: translateY(0);
-  }
 `;
 
 const SeeMoreText = styled.div`
@@ -184,14 +135,14 @@ const SeeMoreText = styled.div`
 
 const SeeMoreCount = styled.span`
   font-size: 12px;
-  opacity: 0.9;
+  color: #666666;
   margin-top: 2px;
 `;
 
 const TopButton = styled.button`
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border: none;
-  color: white;
+  background: #cccccc;
+  border: 1px solid #b3b3b3;
+  color: #333333;
   padding: 8px 16px;
   border-radius: 20px;
   cursor: pointer;
@@ -203,19 +154,7 @@ const TopButton = styled.button`
   gap: 6px;
   width: 100%;
   margin-bottom: 8px;
-  transition: all 0.3s ease;
   pointer-events: all;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
-
-  &:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-    background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
-  }
-
-  &:active {
-    transform: translateY(0);
-  }
 `;
 
 const TopButtonText = styled.div`
@@ -228,13 +167,6 @@ const TopButtonText = styled.div`
 
 const IconContainer = styled.div<{ priority: PriorityLevel }>`
   margin-right: 12px;
-  animation: ${props => props.priority === PriorityLevel.CRITICAL ? 'shake 0.5s ease-in-out infinite' : 'none'};
-
-  @keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-2px); }
-    75% { transform: translateX(2px); }
-  }
 `;
 
 interface ActiveNotificationsProps {
@@ -305,7 +237,7 @@ export function AnimatedNotifications({ onOpenNotificationCenter }: ActiveNotifi
           <Bell size={14} />
           <TopButtonText>
             <div>Notification Center</div>
-            <div style={{ fontSize: '10px', opacity: 0.8 }}>+{remainingCount} more</div>
+            <div style={{ fontSize: '10px', color: '#666666' }}>+{remainingCount} more</div>
           </TopButtonText>
         </TopButton>
       )}

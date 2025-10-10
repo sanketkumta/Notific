@@ -11,8 +11,8 @@ const Container = styled.div<{ isOpen: boolean }>`
   right: ${props => props.isOpen ? '0' : '-400px'};
   width: 400px;
   height: 100vh;
-  background: linear-gradient(180deg, #1e3c72 0%, #2a5298 100%);
-  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.3);
+  background: #f5f5f5;
+  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.1);
   transition: right 0.3s ease-in-out;
   z-index: 2000;
   display: flex;
@@ -20,13 +20,13 @@ const Container = styled.div<{ isOpen: boolean }>`
 `;
 
 const Header = styled.div`
-  background: rgba(0, 0, 0, 0.1);
+  background: #eeeeee;
   padding: 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  color: white;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  color: #333333;
+  border-bottom: 1px solid #e0e0e0;
 `;
 
 const Title = styled.h2`
@@ -35,6 +35,7 @@ const Title = styled.h2`
   display: flex;
   align-items: center;
   gap: 8px;
+  color: #333333;
 `;
 
 const Controls = styled.div`
@@ -45,36 +46,26 @@ const Controls = styled.div`
 const IconButton = styled.button`
   background: none;
   border: none;
-  color: white;
+  color: #666666;
   cursor: pointer;
   padding: 8px;
   border-radius: 6px;
-  transition: background 0.2s;
-
-  &:hover {
-    background: rgba(255, 255, 255, 0.1);
-  }
 `;
 
 const FilterContainer = styled.div`
   padding: 16px 20px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid #e0e0e0;
 `;
 
 const FilterButton = styled.button<{ active: boolean }>`
-  background: ${props => props.active ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.1)'};
+  background: ${props => props.active ? '#cccccc' : '#e0e0e0'};
   border: none;
-  color: white;
+  color: #333333;
   padding: 6px 12px;
   margin: 4px;
   border-radius: 16px;
   font-size: 12px;
   cursor: pointer;
-  transition: all 0.2s;
-
-  &:hover {
-    background: rgba(255, 255, 255, 0.2);
-  }
 `;
 
 const NotificationList = styled.div`
@@ -85,12 +76,12 @@ const NotificationList = styled.div`
 
 const EmptyState = styled.div`
   text-align: center;
-  color: rgba(255, 255, 255, 0.6);
+  color: #999999;
   padding: 40px 20px;
 `;
 
 const Badge = styled.span`
-  background: #ff4757;
+  background: #999999;
   color: white;
   border-radius: 50%;
   padding: 2px 6px;
@@ -102,39 +93,18 @@ const ToggleButton = styled.button<{ hasNotifications: boolean }>`
   position: fixed;
   top: 20px;
   right: 20px;
-  background: ${props => props.hasNotifications ? 'linear-gradient(135deg, #ff4757 0%, #ff3742 100%)' : 'linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)'};
+  background: ${props => props.hasNotifications ? '#999999' : '#cccccc'};
   border: none;
   color: white;
   width: 60px;
   height: 60px;
   border-radius: 50%;
   cursor: pointer;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-  transition: all 0.3s ease;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   z-index: 1999;
   display: flex;
   align-items: center;
   justify-content: center;
-
-  &:hover {
-    transform: scale(1.1);
-  }
-
-  ${props => props.hasNotifications && `
-    animation: pulse 2s infinite;
-
-    @keyframes pulse {
-      0% {
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-      }
-      50% {
-        box-shadow: 0 4px 20px rgba(255, 71, 87, 0.4);
-      }
-      100% {
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-      }
-    }
-  `}
 `;
 
 interface NotificationCenterProps {

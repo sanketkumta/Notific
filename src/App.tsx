@@ -11,30 +11,32 @@ import { ScoringSystemManager } from './components/ScoringSystemManager';
 
 const AppContainer = styled.div`
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #ffffff;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
 `;
 
 const Header = styled.header`
-  background: rgba(0, 0, 0, 0.1);
-  color: white;
+  background: #f5f5f5;
+  color: #333333;
   padding: 16px 24px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  backdrop-filter: blur(10px);
+  border-bottom: 1px solid #e0e0e0;
 `;
 
 const Title = styled.h1`
   margin: 0;
   font-size: 24px;
   font-weight: 300;
+  color: #333333;
 `;
 
 const Subtitle = styled.p`
   margin: 4px 0 0 0;
   opacity: 0.8;
   font-size: 14px;
+  color: #666666;
 `;
 
 const MainContent = styled.main`

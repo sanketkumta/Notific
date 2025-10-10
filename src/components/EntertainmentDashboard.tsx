@@ -16,34 +16,24 @@ const Container = styled.div`
 `;
 
 const AppTile = styled.div`
-  background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+  background: #f5f5f5;
   border-radius: 16px;
   padding: 20px;
-  color: white;
+  color: #333333;
   text-align: center;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e0e0e0;
 
-  &:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  &:nth-child(1) {
+    background: #f5f5f5;
   }
 
-  &:nth-child(odd) {
-    background: linear-gradient(135deg, #fd79a8 0%, #e84393 100%);
+  &:nth-child(2) {
+    background: #eeeeee;
   }
 
-  &:nth-child(3n) {
-    background: linear-gradient(135deg, #fdcb6e 0%, #e17055 100%);
-  }
-
-  &:nth-child(4n) {
-    background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
-  }
-
-  &:nth-child(5n) {
-    background: linear-gradient(135deg, #00b894 0%, #00cec9 100%);
+  &:nth-child(3) {
+    background: #e0e0e0;
   }
 `;
 
@@ -58,7 +48,7 @@ const AppName = styled.div`
 
 const AppDescription = styled.div`
   font-size: 11px;
-  opacity: 0.8;
+  color: #999999;
   margin-top: 4px;
 `;
 

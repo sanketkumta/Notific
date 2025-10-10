@@ -3,9 +3,9 @@ import styled from 'styled-components';
 
 const Container = styled.div`
   min-height: 100vh;
-  background: linear-gradient(135deg, #4834d4 0%, #686de0 100%);
+  background: #ffffff;
   padding: 20px;
-  color: white;
+  color: #333333;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -14,7 +14,7 @@ const Container = styled.div`
 const EmptyMessage = styled.div`
   text-align: center;
   font-size: 24px;
-  opacity: 0.7;
+  color: #666666;
 `;
 
 export function EntertainmentHub() {
