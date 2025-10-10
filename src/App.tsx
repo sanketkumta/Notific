@@ -43,24 +43,6 @@ const MainContent = styled.main`
   margin: 0 auto;
 `;
 
-const WelcomeSection = styled.section`
-  text-align: center;
-  color: white;
-  margin-bottom: 32px;
-`;
-
-const WelcomeTitle = styled.h2`
-  font-size: 28px;
-  margin-bottom: 8px;
-  font-weight: 300;
-`;
-
-const WelcomeText = styled.p`
-  font-size: 16px;
-  opacity: 0.9;
-  margin-bottom: 24px;
-`;
-
 function AppContent() {
   const [isNotificationCenterOpen, setIsNotificationCenterOpen] = useState(false);
   const [currentApp, setCurrentApp] = useState<string | null>(null);
@@ -99,13 +81,6 @@ function AppContent() {
       </Header>
 
       <MainContent>
-        <WelcomeSection>
-          <WelcomeTitle>Welcome Aboard!</WelcomeTitle>
-          <WelcomeText>
-            Enjoy our comprehensive entertainment system and stay connected throughout your journey.
-          </WelcomeText>
-        </WelcomeSection>
-
         <EntertainmentDashboard onAppOpen={handleAppOpen} />
       </MainContent>
 
