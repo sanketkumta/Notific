@@ -101,7 +101,7 @@ const Badge = styled.span`
 const ToggleButton = styled.button<{ hasNotifications: boolean }>`
   position: fixed;
   top: 20px;
-  right: 440px;
+  right: 20px;
   background: ${props => props.hasNotifications ? 'linear-gradient(135deg, #ff4757 0%, #ff3742 100%)' : 'linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)'};
   border: none;
   color: white;
@@ -111,7 +111,7 @@ const ToggleButton = styled.button<{ hasNotifications: boolean }>`
   cursor: pointer;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
   transition: all 0.3s ease;
-  z-index: 999;
+  z-index: 1999;
   display: flex;
   align-items: center;
   justify-content: center;
