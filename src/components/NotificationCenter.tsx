@@ -102,7 +102,7 @@ const ToggleButton = styled.button<{ hasNotifications: boolean }>`
   cursor: pointer;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   z-index: 1999;
-  display: flex;
+  display: none; /* Hidden: notification center button disabled */
   align-items: center;
   justify-content: center;
 `;

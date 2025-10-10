@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import styled from 'styled-components';
 import {
   AlertTriangle,
@@ -14,16 +14,15 @@ import {
   ChevronDown,
   ChevronUp,
   Play,
-  Gamepad2
+  Gamepad2,
+  Move
 } from 'lucide-react';
 import { useNotification } from '../context/NotificationContext';
-import { Notification, NotificationCategory, PriorityLevel } from '../types/notification';
+import { Notification, NotificationCategory, PriorityLevel, calculateWeightedScore } from '../types/notification';
 import { generateAppNotification } from '../data/notificationData';
 
-const Container = styled.div<{ isExpanded: boolean }>`
+const Container = styled.div<{ isExpanded: boolean; isDragging: boolean }>`
   position: fixed;
-  top: 20px;
-  left: 20px;
   background: #f5f5f5;
   border-radius: 16px;
   padding: 20px;
@@ -31,10 +30,11 @@ const Container = styled.div<{ isExpanded: boolean }>`
   width: ${props => props.isExpanded ? '450px' : '280px'};
   border: 1px solid #e0e0e0;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
+  transition: ${props => props.isDragging ? 'none' : 'all 0.3s ease'};
   max-height: ${props => props.isExpanded ? '85vh' : '70px'};
   overflow: hidden;
   z-index: 900;
+  cursor: ${props => props.isDragging ? 'grabbing' : 'default'};
 `;
 
 const Header = styled.div`
@@ -42,7 +42,19 @@ const Header = styled.div`
   justify-content: space-between;
   align-items: center;
   margin-bottom: 16px;
-  cursor: pointer;
+  cursor: grab;
+  user-select: none;
+
+  &:active {
+    cursor: grabbing;
+  }
+`;
+
+const DragHandle = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #999999;
 `;
 
 const Title = styled.h3`
@@ -146,6 +158,39 @@ const TriggerDescription = styled.div`
   color: #666666;
   line-height: 1.1;
   text-align: center;
+`;
+
+const TriggerScore = styled.div`
+  font-size: 10px;
+  color: #666666;
+  margin-top: 6px;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.3);
+  padding: 2px 6px;
+  border-radius: 4px;
+`;
+
+const FormulaDisplay = styled.div`
+  background: #eeeeee;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 12px;
+  margin-top: 12px;
+  font-size: 11px;
+  color: #666666;
+`;
+
+const FormulaTitle = styled.div`
+  font-weight: 600;
+  color: #333333;
+  margin-bottom: 6px;
+`;
+
+const FormulaText = styled.div`
+  font-family: 'Courier New', monospace;
+  color: #666666;
+  font-size: 11px;
+  line-height: 1.4;
 `;
 
 const CustomTriggerSection = styled.div`
@@ -404,8 +449,12 @@ const triggerScenarios: TriggerScenario[] = [
 ];
 
 export function NotificationTrigger() {
-  const { dispatch } = useNotification();
+  const { dispatch, state } = useNotification();
   const [isExpanded, setIsExpanded] = useState(true);
+  const [isDragging, setIsDragging] = useState(false);
+  const [position, setPosition] = useState({ x: 20, y: 20 });
+  const dragRef = useRef<HTMLDivElement>(null);
+  const offsetRef = useRef({ x: 0, y: 0 });
   const [customTrigger, setCustomTrigger] = useState({
     app: '',
     message: '',
@@ -413,40 +462,147 @@ export function NotificationTrigger() {
     priority: PriorityLevel.MEDIUM
   });
 
+  // Drag handlers
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (dragRef.current) {
+      setIsDragging(true);
+      const rect = dragRef.current.getBoundingClientRect();
+      offsetRef.current = {
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top
+      };
+    }
+  };
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (isDragging && dragRef.current) {
+        const newX = e.clientX - offsetRef.current.x;
+        const newY = e.clientY - offsetRef.current.y;
+        
+        // Boundary checks
+        const maxX = window.innerWidth - dragRef.current.offsetWidth;
+        const maxY = window.innerHeight - dragRef.current.offsetHeight;
+        
+        setPosition({
+          x: Math.max(0, Math.min(newX, maxX)),
+          y: Math.max(0, Math.min(newY, maxY))
+        });
+      }
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+    };
+
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging]);
+
+  // Helper to calculate score for a scenario (creates a temporary notification to calculate score)
+  const calculateScenarioScore = (scenario: TriggerScenario): number => {
+    // Create a temporary notification with typical values for this scenario
+    const tempNotification = createNotification(scenario);
+    return calculateWeightedScore(tempNotification, state.currentApp || undefined);
+  };
+
+  // Helper to generate formula display for each category
+  // Standard Format: (Weight1 × Param1) + (Weight2 × Param2) + ... = Score
+  // Weights: 0-1 (sum = 1), Parameters: 1-10
+  const getFormulaDisplay = (category: NotificationCategory): { title: string; formula: string } => {
+    switch (category) {
+      case NotificationCategory.SAFETY:
+      case NotificationCategory.OPERATIONAL_INFO:
+        return {
+          title: 'Safety & Operational Formula',
+          formula: 'Score = (0.33 × Priority) + (0.33 × Impact) + (0.33 × Consequence)'
+        };
+      case NotificationCategory.SYSTEM:
+        return {
+          title: 'User System Formula',
+          formula: 'Score = (0.33 × Priority) + (0.33 × AppRelevance) + (0.33 × Consequence)'
+        };
+      case NotificationCategory.CROSS_APP:
+        return {
+          title: 'Cross-App Formula',
+          formula: 'Score = (0.40 × CategoryImportance) + (0.25 × CashValue) + (0.20 × Relevance) + (0.15 × Recency)'
+        };
+      case NotificationCategory.IN_APP:
+        return {
+          title: 'In-App (Within App) Formula',
+          formula: 'Score = (0.25 × TimeBound) + (0.25 × Relevance) + (0.25 × Consequence) + (0.25 × Recency)'
+        };
+      case NotificationCategory.NON_SAFETY_PROMOTIONAL:
+        return {
+          title: 'Promotional Formula',
+          formula: 'Score = (0.40 × Category) + (0.25 × Cash) + (0.20 × Relevance) + (0.15 × Recency)'
+        };
+      default:
+        return { title: 'Unknown Formula', formula: 'N/A' };
+    }
+  };
+
+  // Helper to generate a deterministic seed from scenario name
+  const getScenarioSeed = (scenario: TriggerScenario): number => {
+    let hash = 0;
+    const str = scenario.name + scenario.category;
+    for (let i = 0; i < str.length; i++) {
+      hash = ((hash << 5) - hash) + str.charCodeAt(i);
+      hash = hash & hash; // Convert to 32bit integer
+    }
+    return Math.abs(hash);
+  };
+
+  // Helper to get deterministic value based on seed (replaces Math.random())
+  const getSeededValue = (seed: number, index: number, min: number, max: number): number => {
+    const x = Math.sin(seed + index) * 10000;
+    const random = x - Math.floor(x);
+    return Math.floor(random * (max - min + 1)) + min;
+  };
+
   const createNotification = (scenario: TriggerScenario): Notification => {
-    // Generate realistic scoring based on category and priority
+    // Generate DETERMINISTIC scoring based on scenario (not random!)
+    // This ensures the score on the button matches the score in notification center
+    const seed = getScenarioSeed(scenario);
     let timePhaseBound, relevance, consequence, recency;
 
     switch (scenario.category) {
       case NotificationCategory.SAFETY:
-        timePhaseBound = Math.floor(Math.random() * 2) + 9; // 9-10 (very urgent)
-        relevance = Math.floor(Math.random() * 2) + 9; // 9-10 (highly relevant)
-        consequence = Math.floor(Math.random() * 2) + 9; // 9-10 (severe consequence)
+        timePhaseBound = getSeededValue(seed, 1, 9, 10); // 9-10 (very urgent)
+        relevance = getSeededValue(seed, 2, 9, 10); // 9-10 (highly relevant)
+        consequence = getSeededValue(seed, 3, 9, 10); // 9-10 (severe consequence)
         recency = 10; // Always current
         break;
       case NotificationCategory.OPERATIONAL_INFO:
-        timePhaseBound = Math.floor(Math.random() * 3) + 7; // 7-9 (time-sensitive)
-        relevance = Math.floor(Math.random() * 3) + 7; // 7-9 (relevant to flight)
-        consequence = Math.floor(Math.random() * 3) + 6; // 6-8 (moderate consequence)
-        recency = Math.floor(Math.random() * 2) + 9; // 9-10 (recent)
+        timePhaseBound = getSeededValue(seed, 1, 7, 9); // 7-9 (time-sensitive)
+        relevance = getSeededValue(seed, 2, 7, 9); // 7-9 (relevant to flight)
+        consequence = getSeededValue(seed, 3, 6, 8); // 6-8 (moderate consequence)
+        recency = getSeededValue(seed, 4, 9, 10); // 9-10 (recent)
         break;
       case NotificationCategory.SYSTEM:
-        timePhaseBound = Math.floor(Math.random() * 4) + 5; // 5-8 (moderate urgency)
-        relevance = Math.floor(Math.random() * 3) + 6; // 6-8 (somewhat relevant)
-        consequence = Math.floor(Math.random() * 4) + 4; // 4-7 (variable consequence)
-        recency = Math.floor(Math.random() * 3) + 8; // 8-10 (recent)
+        timePhaseBound = getSeededValue(seed, 1, 5, 8); // 5-8 (moderate urgency)
+        relevance = getSeededValue(seed, 2, 6, 8); // 6-8 (somewhat relevant)
+        consequence = getSeededValue(seed, 3, 4, 7); // 4-7 (variable consequence)
+        recency = getSeededValue(seed, 4, 8, 10); // 8-10 (recent)
         break;
       case NotificationCategory.CROSS_APP:
-        timePhaseBound = Math.floor(Math.random() * 4) + 4; // 4-7 (less urgent)
-        relevance = Math.floor(Math.random() * 4) + 6; // 6-9 (user-specific relevance)
-        consequence = Math.floor(Math.random() * 3) + 5; // 5-7 (moderate consequence)
-        recency = Math.floor(Math.random() * 3) + 7; // 7-9 (fairly recent)
+        timePhaseBound = getSeededValue(seed, 1, 4, 7); // 4-7 (less urgent)
+        relevance = getSeededValue(seed, 2, 6, 9); // 6-9 (user-specific relevance)
+        consequence = getSeededValue(seed, 3, 5, 7); // 5-7 (moderate consequence)
+        recency = getSeededValue(seed, 4, 7, 9); // 7-9 (fairly recent)
         break;
       default: // NON_SAFETY_PROMOTIONAL
-        timePhaseBound = Math.floor(Math.random() * 4) + 2; // 2-5 (low urgency)
-        relevance = Math.floor(Math.random() * 6) + 3; // 3-8 (variable relevance)
-        consequence = Math.floor(Math.random() * 4) + 2; // 2-5 (low consequence)
-        recency = Math.floor(Math.random() * 5) + 5; // 5-9 (variable recency)
+        timePhaseBound = getSeededValue(seed, 1, 2, 5); // 2-5 (low urgency)
+        relevance = getSeededValue(seed, 2, 3, 8); // 3-8 (variable relevance)
+        consequence = getSeededValue(seed, 3, 2, 5); // 2-5 (low consequence)
+        recency = getSeededValue(seed, 4, 5, 9); // 5-9 (variable recency)
         break;
     }
 
@@ -455,7 +611,7 @@ export function NotificationTrigger() {
       app: scenario.app,
       category: scenario.category,
       priority: scenario.priority,
-      priorityScore: Math.floor(Math.random() * 40) + 10,
+      priorityScore: getSeededValue(seed, 5, 10, 50),
       timePhaseBound,
       relevance,
       consequence,
@@ -506,13 +662,27 @@ export function NotificationTrigger() {
   const promotionalScenarios = triggerScenarios.filter(s => s.category === NotificationCategory.NON_SAFETY_PROMOTIONAL);
 
   return (
-    <Container isExpanded={isExpanded}>
-      <Header onClick={() => setIsExpanded(!isExpanded)}>
-        <Title>
-          <Bell size={16} />
-          Notification Triggers
-        </Title>
-        <ExpandButton>
+    <Container 
+      ref={dragRef}
+      isExpanded={isExpanded}
+      isDragging={isDragging}
+      style={{ left: position.x, top: position.y }}
+    >
+      <Header onMouseDown={handleMouseDown}>
+        <DragHandle>
+          <Move size={14} />
+          <Title>
+            <Bell size={16} />
+            Notification Triggers
+          </Title>
+        </DragHandle>
+        <ExpandButton 
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsExpanded(!isExpanded);
+          }}
+          onMouseDown={(e) => e.stopPropagation()}
+        >
           {isExpanded ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
         </ExpandButton>
       </Header>
@@ -520,6 +690,10 @@ export function NotificationTrigger() {
       <Content>
         <Section>
           <SectionTitle>🚨 Safety Critical</SectionTitle>
+          <FormulaDisplay>
+            <FormulaTitle>{getFormulaDisplay(NotificationCategory.SAFETY).title}</FormulaTitle>
+            <FormulaText>{getFormulaDisplay(NotificationCategory.SAFETY).formula}</FormulaText>
+          </FormulaDisplay>
           <TriggerGrid>
             {safetyScenarios.map((scenario, index) => (
               <TriggerButton
@@ -530,6 +704,7 @@ export function NotificationTrigger() {
                 <TriggerIcon>{scenario.icon}</TriggerIcon>
                 <TriggerName>{scenario.name}</TriggerName>
                 <TriggerDescription>{scenario.description}</TriggerDescription>
+                <TriggerScore>Score: {calculateScenarioScore(scenario).toFixed(2)}</TriggerScore>
               </TriggerButton>
             ))}
           </TriggerGrid>
@@ -537,6 +712,10 @@ export function NotificationTrigger() {
 
         <Section>
           <SectionTitle>✈️ Operational</SectionTitle>
+          <FormulaDisplay>
+            <FormulaTitle>{getFormulaDisplay(NotificationCategory.OPERATIONAL_INFO).title}</FormulaTitle>
+            <FormulaText>{getFormulaDisplay(NotificationCategory.OPERATIONAL_INFO).formula}</FormulaText>
+          </FormulaDisplay>
           <TriggerGrid>
             {operationalScenarios.map((scenario, index) => (
               <TriggerButton
@@ -547,6 +726,7 @@ export function NotificationTrigger() {
                 <TriggerIcon>{scenario.icon}</TriggerIcon>
                 <TriggerName>{scenario.name}</TriggerName>
                 <TriggerDescription>{scenario.description}</TriggerDescription>
+                <TriggerScore>Score: {calculateScenarioScore(scenario).toFixed(2)}</TriggerScore>
               </TriggerButton>
             ))}
           </TriggerGrid>
@@ -554,6 +734,10 @@ export function NotificationTrigger() {
 
         <Section>
           <SectionTitle>⚙️ System</SectionTitle>
+          <FormulaDisplay>
+            <FormulaTitle>{getFormulaDisplay(NotificationCategory.SYSTEM).title}</FormulaTitle>
+            <FormulaText>{getFormulaDisplay(NotificationCategory.SYSTEM).formula}</FormulaText>
+          </FormulaDisplay>
           <TriggerGrid>
             {systemScenarios.map((scenario, index) => (
               <TriggerButton
@@ -564,6 +748,7 @@ export function NotificationTrigger() {
                 <TriggerIcon>{scenario.icon}</TriggerIcon>
                 <TriggerName>{scenario.name}</TriggerName>
                 <TriggerDescription>{scenario.description}</TriggerDescription>
+                <TriggerScore>Score: {calculateScenarioScore(scenario).toFixed(2)}</TriggerScore>
               </TriggerButton>
             ))}
           </TriggerGrid>
@@ -571,6 +756,10 @@ export function NotificationTrigger() {
 
         <Section>
           <SectionTitle>🔄 Cross-App</SectionTitle>
+          <FormulaDisplay>
+            <FormulaTitle>{getFormulaDisplay(NotificationCategory.CROSS_APP).title}</FormulaTitle>
+            <FormulaText>{getFormulaDisplay(NotificationCategory.CROSS_APP).formula}</FormulaText>
+          </FormulaDisplay>
           <TriggerGrid>
             {crossAppScenarios.map((scenario, index) => (
               <TriggerButton
@@ -581,6 +770,7 @@ export function NotificationTrigger() {
                 <TriggerIcon>{scenario.icon}</TriggerIcon>
                 <TriggerName>{scenario.name}</TriggerName>
                 <TriggerDescription>{scenario.description}</TriggerDescription>
+                <TriggerScore>Score: {calculateScenarioScore(scenario).toFixed(2)}</TriggerScore>
               </TriggerButton>
             ))}
           </TriggerGrid>
@@ -588,6 +778,10 @@ export function NotificationTrigger() {
 
         <Section>
           <SectionTitle>🛍️ Promotional</SectionTitle>
+          <FormulaDisplay>
+            <FormulaTitle>{getFormulaDisplay(NotificationCategory.NON_SAFETY_PROMOTIONAL).title}</FormulaTitle>
+            <FormulaText>{getFormulaDisplay(NotificationCategory.NON_SAFETY_PROMOTIONAL).formula}</FormulaText>
+          </FormulaDisplay>
           <TriggerGrid>
             {promotionalScenarios.map((scenario, index) => (
               <TriggerButton
@@ -598,6 +792,7 @@ export function NotificationTrigger() {
                 <TriggerIcon>{scenario.icon}</TriggerIcon>
                 <TriggerName>{scenario.name}</TriggerName>
                 <TriggerDescription>{scenario.description}</TriggerDescription>
+                <TriggerScore>Score: {calculateScenarioScore(scenario).toFixed(2)}</TriggerScore>
               </TriggerButton>
             ))}
           </TriggerGrid>
@@ -605,6 +800,10 @@ export function NotificationTrigger() {
 
         <Section>
           <SectionTitle>📱 App-Specific (In-App)</SectionTitle>
+          <FormulaDisplay>
+            <FormulaTitle>{getFormulaDisplay(NotificationCategory.IN_APP).title}</FormulaTitle>
+            <FormulaText>{getFormulaDisplay(NotificationCategory.IN_APP).formula}</FormulaText>
+          </FormulaDisplay>
           <TriggerGrid>
             <TriggerButton
               priority={PriorityLevel.LOW}
@@ -616,6 +815,7 @@ export function NotificationTrigger() {
               <TriggerIcon><ShoppingBag size={16} /></TriggerIcon>
               <TriggerName>Duty Free</TriggerName>
               <TriggerDescription>Shop notifications</TriggerDescription>
+              <TriggerScore>Score: {calculateWeightedScore(generateAppNotification('duty-free'), state.currentApp || undefined).toFixed(2)}</TriggerScore>
             </TriggerButton>
 
             <TriggerButton
@@ -628,6 +828,7 @@ export function NotificationTrigger() {
               <TriggerIcon><Coffee size={16} /></TriggerIcon>
               <TriggerName>Food & Drinks</TriggerName>
               <TriggerDescription>Meal notifications</TriggerDescription>
+              <TriggerScore>Score: {calculateWeightedScore(generateAppNotification('food'), state.currentApp || undefined).toFixed(2)}</TriggerScore>
             </TriggerButton>
 
             <TriggerButton
@@ -640,6 +841,7 @@ export function NotificationTrigger() {
               <TriggerIcon><Play size={16} /></TriggerIcon>
               <TriggerName>Movies & TV</TriggerName>
               <TriggerDescription>Entertainment alerts</TriggerDescription>
+              <TriggerScore>Score: {calculateWeightedScore(generateAppNotification('movies'), state.currentApp || undefined).toFixed(2)}</TriggerScore>
             </TriggerButton>
 
             <TriggerButton
@@ -652,6 +854,7 @@ export function NotificationTrigger() {
               <TriggerIcon><Volume2 size={16} /></TriggerIcon>
               <TriggerName>Music</TriggerName>
               <TriggerDescription>Playlist suggestions</TriggerDescription>
+              <TriggerScore>Score: {calculateWeightedScore(generateAppNotification('music'), state.currentApp || undefined).toFixed(2)}</TriggerScore>
             </TriggerButton>
 
             <TriggerButton
@@ -664,6 +867,7 @@ export function NotificationTrigger() {
               <TriggerIcon><Gamepad2 size={16} /></TriggerIcon>
               <TriggerName>Games</TriggerName>
               <TriggerDescription>Game recommendations</TriggerDescription>
+              <TriggerScore>Score: {calculateWeightedScore(generateAppNotification('games'), state.currentApp || undefined).toFixed(2)}</TriggerScore>
             </TriggerButton>
 
             <TriggerButton
@@ -676,6 +880,7 @@ export function NotificationTrigger() {
               <TriggerIcon><Wifi size={16} /></TriggerIcon>
               <TriggerName>WiFi</TriggerName>
               <TriggerDescription>Connection status</TriggerDescription>
+              <TriggerScore>Score: {calculateWeightedScore(generateAppNotification('internet'), state.currentApp || undefined).toFixed(2)}</TriggerScore>
             </TriggerButton>
           </TriggerGrid>
         </Section>

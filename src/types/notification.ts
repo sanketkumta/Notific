@@ -1,3 +1,20 @@
+/**
+ * NOTIFICATION SCORING SYSTEM
+ * 
+ * Standard Formula Format:
+ * Score = (Weight1 × Param1) + (Weight2 × Param2) + (Weight3 × Param3) + ...
+ * 
+ * Rules:
+ * 1. All Weights are in range [0, 1] and must sum to 1.0
+ * 2. All Parameters are in range [1, 10]
+ * 3. Maximum possible Score = 10.0 (when all params = 10 and weights sum to 1)
+ * 
+ * Example:
+ * If using 3 parameters with weights 0.33, 0.33, 0.33:
+ * Score = (0.33 × Param1) + (0.33 × Param2) + (0.33 × Param3)
+ * Max Score = (0.33 × 10) + (0.33 × 10) + (0.33 × 10) = 9.9 ≈ 10.0
+ */
+
 export interface Notification {
   id: string;
   app: string;
